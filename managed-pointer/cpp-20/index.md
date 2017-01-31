@@ -100,7 +100,7 @@ public:
   template <typename allocatorT>
   managed_ptr(size_t, allocatorT); // (4)
 
-  / * copy/move constructors/operators, destructor */
+  /* copy/move constructors/operators, destructor */
   managed_ptr(const managed_ptr &);
   managed_ptr(const managed_ptr &&);
   managed_ptr &operator=(const managed_ptr &);
