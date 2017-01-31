@@ -1,10 +1,11 @@
 # Asynchronous Data-Flow approach to Heterogeneous System
 
 
-| Proposal ID | CP0001 |
+| Proposal ID | CP001 |
 |-------------|--------|
 | Name | Asynchronous Data-Flow approach to heterogeneous systems |
 | Date of Creation | 20 July 2016 |
+| Target | SYCL 2.2 |
 | Current Status | _Work In Progress_ |
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
