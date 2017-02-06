@@ -1,10 +1,11 @@
-# PXXXXR0: Managed Pointer
-
+**Document number: P0567R0**
 **Date: 2017-01-30**
-**Project: Programming Language C++, SG14, SG1**
+**Project: SG1, SG14**
 **Authors: Gordon Brown, Ruyman Reyes, Michael Wong**
 **Emails: gordon@codeplay.com, ruyman@codeplay.com, michael@codeplay.com**
 **Reply to: michael@codeplay.com, gordon@codeplay.com**
+
+# Asynchronous managed pointer for Heterogeneous computing
 
 ## Introduction
 
@@ -16,7 +17,7 @@ This paper proposes an addition to the C\+\+ standard library to facilitate the 
 
 The aim of this paper is to begin an exploratory work into designing a unified interface for data movement. There are many different data flow models to consider when designing such an interface so it is expected that this paper will serve only as a beginning.
 
-The approach proposed in this paper does not include all of the use cases that a complete solution should cover.
+The approach proposed in this paper does not include all of the use cases that a complete solution would cover.
 * This approach makes the assumption that there is only a single host CPU device which is capable of performing synchronisation with **execution contexts**.
 * This approach does not include an optimized manner of moving data between **execution contexts**.
 * This approach does not include support for systems which allows for multiple devices to access the same memory concurrently.
@@ -42,6 +43,14 @@ This approach is also heavily influenced by the proposal for a unified interface
 ### Scope of this Paper
 
 There are some additional important considerations when looking at a container for data movement in heterogeneous and distributed systems, however, in order to prevent this paper from becoming too verbose, these have been left out of the scope of the proposed additions here. It is important to note them in relation to this paper for future works, for further details on these additional considerations see the future work section.
+
+### Naming considerations
+
+During the development of this paper, many names were considered both for the `managed_ptr` itself and for its interface.
+
+Alternative names that were considered for `managed_ptr` were `temporal` as it described a container which gave temporal access to a managed memory allocation, `managed_container` as the original design was based on the `std::vector` container and `managed_array` as the managed memory allocation is statically sized.
+
+Alternative names for the `put()` and `get()` interface were `acquire()` and `release()` as you were effectively acquiring and releasing the managed memory allocation and `send()` and `receive()` as you are effectively sending and receiving back the managed memory allocation.
 
 ## Proposed Additions
 
@@ -305,7 +314,7 @@ We may wish to introduce a way of implicitly moving data between execution conte
 
 While CPUs have a single flat memory region with a single address space, most heterogeneous devices have a more complex hierarchy of memory regions each with their own distinct address spaces. Each of these memory regions have a unique access scope, semantics and latency. Some heterogeneous programming models provide a unified or shared memory address space to allow more generic programming such as OpenCL 2.x [6], HSA [7] and CUDA [8], however, this will not always result in the most efficient memory access. This can be supported either in hardware where the host CPU and remote devices share the same physical memory or software where a cross-device cache coherency system is in place, and there are various different levels at which this feature can be supported. In general, this means that pointers that are allocated in the host CPU memory region can be used directly in the memory regions of remote devices, though this sometimes requires mapping operations to be performed.
 
-We may wish to investigate this feature further to incorporate support for these kind of systems, ensuring that the ``managed_ptr`` can fully utilise the memory regions on these systems.
+We may wish to investigate this feature further to incorporate support for this kind of systems, ensuring that the ``managed_ptr`` can fully utilise the memory regions on these systems.
 
 ## References
 
