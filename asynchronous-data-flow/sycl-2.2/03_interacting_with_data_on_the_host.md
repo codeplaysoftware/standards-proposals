@@ -34,6 +34,9 @@ runtime to perform further optimizations when available.
 For example, a SYCL runtime may decide to map / unmap instead of copy operations,
 or  performing asynchronous transfers while data is being computed.
 
+It is possible to run multiple host tasks in the same command group - the host
+tasks are executed in-order within the command group.
+
 ```cpp
     auto cgH = [=] (handler& h) {
       auto accA = bufA.get_access<access::mode::read>(h);
@@ -42,9 +45,19 @@ or  performing asynchronous transfers while data is being computed.
       h.host_task([=]() {
         accB[0] = accA[0] * std::rand();
       }
-      };
+
+      auto accC = bufC.get_access<access::mode::read>(h);
+      h.host_task([=]() {
+        accC[0] += accA[0] * accB[0];
+      }
+    };
     qA.submit(cgH);
 ```
+
+Note that in the code above `accC` was created after the first host task has
+been scheduled, but the actual data may already be available before the first
+host task starts executing. In the second host task, the value of `accB` is
+consistent with the value set in the first host task.
 
 #### API changes
 
