@@ -18,5 +18,5 @@ This paper proposes an addition to the C\+\+ standard library to facilitate the 
 
 | Version | Last Modified | Document |
 |---------|----- | ---------|
-| D0567R1 | 23 February 2017 | [Link](cpp-20/P0567R0.md) |
+| D0567R1 | 23 February 2017 | [Link](cpp-20/D0567R1.md) |
 | P0567R0 | 6 February 2017 | [Link](cpp-20/P0567R0.md) |

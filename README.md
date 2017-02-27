@@ -41,4 +41,4 @@ Each proposal in the table below will be tagged with one of the following states
 | ID | Name                   | Target | Initial creation | Latest update | Status |
 | --- | ---------------------- | ------ | ---------------- | ------------- | ------ |
 | CP001 | [Asynchronous Data Flow](asynchronous-data-flow/index.md) | SYCL 2.2 |   20 July 2016   | 11 Jan 2017   | _Work in Progress_  |
-| CP002 | [P0567R0: Asynchronous managed pointer for Heterogeneous computing](managed-pointer/index.md) | ISO C++ SG1, SG14 | 22 July 2016 | 6 Feb 2017 | _Final Draft_ |
+| CP002 | [Asynchronous managed pointer for Heterogeneous computing](managed-pointer/index.md) | ISO C++ SG1, SG14 | 22 July 2016 | 6 Feb 2017 | _Published_ |
