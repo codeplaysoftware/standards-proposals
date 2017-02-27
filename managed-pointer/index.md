@@ -2,7 +2,7 @@
 
 | Proposal ID | CP002 |
 |-------------|--------|
-| Name | P0567R0: Asynchronous managed pointer for Heterogeneous computing |
+| Name | Asynchronous managed pointer for Heterogeneous computing |
 | Date of Creation | 22 July 2016 |
 | Target | ISO C++ SG1, SG14 |
 | Current Status | _Work In Progress_ |
@@ -18,4 +18,5 @@ This paper proposes an addition to the C\+\+ standard library to facilitate the 
 
 | Version | Last Modified | Document |
 |---------|----- | ---------|
-| 1.0 | 6 February 2017 | [Link](cpp-20/index.md) |
+| D0567R1 | 23 February 2017 | [Link](cpp-20/P0567R0.md) |
+| P0567R0 | 6 February 2017 | [Link](cpp-20/P0567R0.md) |
