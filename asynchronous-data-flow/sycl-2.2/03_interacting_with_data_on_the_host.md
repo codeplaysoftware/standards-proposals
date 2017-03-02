@@ -35,7 +35,9 @@ For example, a SYCL runtime may decide to map / unmap instead of copy operations
 or  performing asynchronous transfers while data is being computed.
 
 It is possible to run multiple host tasks in the same command group - the host
-tasks are executed in-order within the command group.
+tasks are executed in-order within the command group. It is not possible to use
+host tasks and kernel invocations (e.g. `parallel_for`) in the same command
+group.
 
 ```cpp
     auto cgH = [=] (handler& h) {
