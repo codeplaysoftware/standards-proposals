@@ -18,9 +18,12 @@ enable accessing SYCL memory objects from the host.
 
 Listing [hostcg:req] shows a command group
 (CG<sub>h</sub>{r<sub>read(bufA)</sub>,r<sub>read_write(bufB)</sub>}) that it is enqueued on a device queue but
-performs operations on the host. We have extended the handler to include
-a new **host\_task** method that executes a task on the host. By
-submitting this command group to the SYCL device queue, we guarantee it is
+performs operations on the host.
+We introduce a new type of handler, the **host\_handler**, which includes a new
+**host\_task** method that executes a task on the host. The `host_handler` can
+be passed to any function that expects a `handler` parameter (e.g. calling
+`get_access(handler)` on a buffer).
+By submitting this command group to the SYCL device queue, we guarantee it is
 executed in-order w.r.t the other command groups on the same queue.
 Simultaneously, we guarantee that this operation is performed
 asynchronously w.r.t to the user-thread (therefore, enabling the user
@@ -37,10 +40,11 @@ or  performing asynchronous transfers while data is being computed.
 It is possible to run multiple host tasks in the same command group - the host
 tasks are executed in-order within the command group. It is not possible to use
 host tasks and kernel invocations (e.g. `parallel_for`) in the same command
-group.
+group. This restriction is enforced by the use of `host_handler`, which does not
+include kernel invocation methods.
 
 ```cpp
-    auto cgH = [=] (handler& h) {
+    auto cgH = [=] (host_handler& h) {
       auto accA = bufA.get_access<access::mode::read>(h);
       auto accB = bufB.get_access<access::mode::read_write>(h);
 
@@ -62,6 +66,23 @@ host task starts executing. In the second host task, the value of `accB` is
 consistent with the value set in the first host task.
 
 #### API changes
+
+```cpp
+namespace cl {
+namespace sycl {
+
+class host_handler {
+ private:
+  // implementation defined constructor
+  host_handler(__unspecified__);
+
+ public:
+  template <typename FunctorT>
+  void host_task(FunctorT hostFunction);
+};
+}  // namespace sycl
+}  // namespace cl
+```
 
 | Method | Description |
 |--------|-------------|
