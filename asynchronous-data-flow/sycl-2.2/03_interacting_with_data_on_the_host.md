@@ -98,6 +98,24 @@ auto cgH = [=] (handler& h) {
 qA.submit(cgH);
 ```
 
+#### Access restrictions
+
+There are a few restrictions on the access mode and target of the accessor
+supplied to `update_from_device` and `update_to_device`.
+
+Because a call to `update_from_device` triggers a read from the device data, the
+accessor access mode can only be one of the following:
+* `access::mode::read`
+* `access::mode::read_write`
+* `access::mode::discard_read_write`
+
+Similarly, because a call to `update_to_device` triggers a write to the device
+data, the accessor access mode can only be one of the following:
+* `access::mode::write`
+* `access::mode::read_write`
+* `access::mode::discard_write`
+* `access::mode::discard_read_write`
+
 #### API changes
 
 | Method | Description |
