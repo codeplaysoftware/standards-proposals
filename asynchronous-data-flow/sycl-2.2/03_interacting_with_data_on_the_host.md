@@ -102,9 +102,9 @@ qA.submit(cgH);
 
 | Method | Description |
 |--------|-------------|
-| `template <typename AccessorT> void update_from_device(AccessorT acc)`  | Updates the pointer associated with the buffer or image on the host. |
-| `template <typename AccessorT> void update_to_device(AccessorT acc)`  | Updates the data in accessor `acc` with the data associated with it on the host. |
-| `template <typename T, typename AccessorT> void update_from_device(shared_ptr<T> hostPtr, AccessorT acc)`  | Update the contents of the host pointer with the data in accessor `acc`. `hostPtr` must have enough space allocated to hold the data. |
-| `template <typename AccessorT, typename T> void update_to_device(AccessorT acc, shared_ptr<T> hostPtr)` | Update the the data in accessor `acc` with the contents of the host pointer. `hostPtr` must have enough space allocated to hold the data. |
-| `template <typename OutputIterator, typename AccessorT> void update_from_device(OutputIterator ot, AccessorT acc)` | Write the contents of the memory pointed to by `acc` into the output iterator `ot`.  |
-| `template <typename AccessorT, typename InputIterator> void update_to_device(AccessorT acc, InputIterator it)` | Write the contents of the input iterator `it` into the memory pointed to by `acc`.  |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_from_device(accessor<T, dims, accessMode, accessTarget> acc)`  | Updates the pointer associated with the buffer or image on the host. |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_to_device(accessor<T, dims, accessMode, accessTarget> acc)`  | Updates the data in accessor `acc` with the data associated with it on the host. |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_from_device(shared_ptr<T> hostPtr, accessor<T, dims, accessMode, accessTarget> acc)`  | Update the contents of the host pointer with the data in accessor `acc`. `hostPtr` must have enough space allocated to hold the data. |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_to_device(accessor<T, dims, accessMode, accessTarget> acc, shared_ptr<T> hostPtr)` | Update the the data in accessor `acc` with the contents of the host pointer. `hostPtr` must have enough space allocated to hold the data. |
+| `template <typename OutputIterator, typename T, int dims, access::mode accessMode, access::target accessTarget> void update_from_device(OutputIterator ot, accessor<T, dims, accessMode, accessTarget> acc)` | Write the contents of the memory pointed to by `acc` into the output iterator `ot`.  |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget, typename InputIterator> void update_to_device(accessor<T, dims, accessMode, accessTarget> acc, InputIterator it)` | Write the contents of the input iterator `it` into the memory pointed to by `acc`.  |
