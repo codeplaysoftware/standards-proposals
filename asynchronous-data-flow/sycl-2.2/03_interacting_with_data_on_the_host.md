@@ -86,8 +86,7 @@ without blocking the execution.
 Note that the users can query the event returned by the submit to check if the
 command group has finished (and, therefore, the host pointer has been updated).
 
-Additionally, users may want to manually update the device data with some host
-data.
+Additionally, users may want to manually update the device data with host data.
 
 ```cpp
 auto cgH = [=] (handler& h) {
@@ -100,17 +99,17 @@ qA.submit(cgH);
 
 #### Access restrictions
 
-There are a few restrictions on the access mode and target of the accessor
-supplied to `update_from_device` and `update_to_device`.
+The following restrictions apply to access mode and target of the accessor
+provided to `update_from_device` and `update_to_device`.
 
 Because a call to `update_from_device` triggers a read from the device data, the
-accessor access mode can only be one of the following:
+only valid accessor modes are the following:
 * `access::mode::read`
 * `access::mode::read_write`
 * `access::mode::discard_read_write`
 
 Similarly, because a call to `update_to_device` triggers a write to the device
-data, the accessor access mode can only be one of the following:
+data, the only valid accessor modes are the following:
 * `access::mode::write`
 * `access::mode::read_write`
 * `access::mode::discard_write`
