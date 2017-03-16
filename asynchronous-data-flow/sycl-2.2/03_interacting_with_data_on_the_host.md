@@ -101,18 +101,50 @@ without blocking the execution.
     auto cgH = [=] (handler& h) {
       auto accA = bufA.get_access<access::mode::read>(h);
       h.parallel_for<class kernel>(range, SomeKernel(accA));
-      h.update_from_device(accA, hostPtr);
-      };
+      h.update_from_device(hostPtr, accA);
+    };
     qA.submit(cgH);
 ```
 
 Note that the users can query the event returned by the submit to check if the
 command group has finished (and, therefore, the host pointer has been updated).
 
+Additionally, users may want to manually update the device data with host data.
+
+```cpp
+auto cgH = [=] (handler& h) {
+  auto accA = bufA.get_access<access::mode::read_write>(h);
+  h.update_to_device(accA, hostPtr);
+  h.parallel_for<class kernel>(range, SomeKernel(accA));
+};
+qA.submit(cgH);
+```
+
+#### Access restrictions
+
+The following restrictions apply to access mode and target of the accessor
+provided to `update_from_device` and `update_to_device`.
+
+Because a call to `update_from_device` triggers a read from the device data, the
+only valid accessor modes are the following:
+* `access::mode::read`
+* `access::mode::read_write`
+* `access::mode::discard_read_write`
+
+Similarly, because a call to `update_to_device` triggers a write to the device
+data, the only valid accessor modes are the following:
+* `access::mode::write`
+* `access::mode::read_write`
+* `access::mode::discard_write`
+* `access::mode::discard_read_write`
+
 #### API changes
 
 | Method | Description |
 |--------|-------------|
-| `cpp template<typename AccessorT, typename T> void update_from_device(AccessorT acc)`  | Updates the pointer associated with the buffer or image on the host. |
-| `cpp template<typename AccessorT, typename T> void update_from_device(AccessorT acc, shared_ptr<T> hostPtr)`  | Update the contents of the host pointer with the data in accessor _acc_. _hostPtr_ must have enough space allocated to hold the data. |
-| `template<typename AccessorT, typename OutputIterator> void update_from_device(AccessorT acc, OutputIterator ot)`  | Write the contents of the memory pointed by _acc_ into the OutputIterator _ot_  |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_from_device(accessor<T, dims, accessMode, accessTarget> acc)`  | Updates the pointer associated with the buffer or image on the host. |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_to_device(accessor<T, dims, accessMode, accessTarget> acc)`  | Updates the data in accessor `acc` with the data associated with it on the host. |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_from_device(shared_ptr<T> hostPtr, accessor<T, dims, accessMode, accessTarget> acc)`  | Update the contents of the host pointer with the data in accessor `acc`. `hostPtr` must have enough space allocated to hold the data. |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_to_device(accessor<T, dims, accessMode, accessTarget> acc, shared_ptr<T> hostPtr)` | Update the the data in accessor `acc` with the contents of the host pointer. `hostPtr` must have enough space allocated to hold the data. |
+| `template <typename OutputIterator, typename T, int dims, access::mode accessMode, access::target accessTarget> void update_from_device(OutputIterator ot, accessor<T, dims, accessMode, accessTarget> acc)` | Write the contents of the memory pointed to by `acc` into the output iterator `ot`.  |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget, typename InputIterator> void update_to_device(accessor<T, dims, accessMode, accessTarget> acc, InputIterator it)` | Write the contents of the input iterator `it` into the memory pointed to by `acc`.  |
