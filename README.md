@@ -45,3 +45,4 @@ Each proposal in the table below will be tagged with one of the following states
 | CP005 | [Asynchronous managed pointer for Heterogeneous computing](managed-pointer/index.md) | ISO C++ SG1, SG14 | 22 July 2016 | 6 Feb 2017 | _Published_ |
 | CP006 | [Maybe unused attribute in decomposition declarations](defects-2017-02/cpp-17/maybe-unused-decomposition-decls.md) | ISO C++ EWG | 22 February 2017 | 22 February 2017 | _Published_ |
 | CP007 | [Vector Load and Store Operations](vector-operations/sycl-2.2/vector-loads-and-stores.md) | SYCL 2.2 | 29 March 2017 | 30 March 2017 | _Work in Progress_ |
+| CP008 | [Buffer tied to a context](tied-buffer/index.md) | 17 March 2017 | 19 April 2017 | _Work in Progress_ | 
