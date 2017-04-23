@@ -43,7 +43,7 @@ separate contexts cannot execute simultaneously if they access the same
 memory objects.
 
 We can leverage this restrictions by considering the different *access modes*
-of the memory object. SYCL defines six different access modes to memory objects
+of the memory object. SYCL defines five different access modes to memory objects
 (Table 4.14 of SYCL 2.2 specification):
 
 -   read (R): The kernel requests read-only access mode to the memory
