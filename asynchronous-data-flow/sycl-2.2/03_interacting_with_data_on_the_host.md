@@ -17,12 +17,13 @@ enable accessing SYCL memory objects from the host.
 ### Enqueuing host tasks on SYCL queues
 
 Listing [hostcg:req] shows a command group
-(CG<sub>h</sub>{r<sub>read(bufA)</sub>,r<sub>read_write(bufB)</sub>}) that it is enqueued on a device queue but
-performs operations on the host.
+(CG<sub>h</sub>{r<sub>read(bufA)</sub>,r<sub>read_write(bufB)</sub>}) that is
+enqueued on a device queue but performs operations on the host.
+
 We introduce a new type of handler, the **host\_handler**, which includes a new
-**host\_task** method that executes a task on the host. The `host_handler` can
-be passed to any function that expects a `handler` parameter (e.g. calling
-`get_access(handler)` on a buffer).
+**single\_task** method that executes a single task on the host. The
+`host_handler` can be passed to any function that expects a `handler` parameter
+(e.g. calling `get_access(handler)` on a buffer).
 By submitting this command group to the SYCL device queue, we guarantee it is
 executed in-order w.r.t the other command groups on the same queue.
 Simultaneously, we guarantee that this operation is performed
@@ -32,7 +33,7 @@ Other command groups enqueued in the same or different queues
 can be executed following the sequential consistency by guaranteeing the
 satisfaction of the requisites of this command group.
 
-The possibility of enqueuing host task on SYCL queues also enables the
+The possibility of enqueuing host tasks on SYCL queues also enables the
 runtime to perform further optimizations when available.
 For example, a SYCL runtime may decide to map / unmap instead of copy operations,
 or  performing asynchronous transfers while data is being computed.
@@ -48,12 +49,12 @@ include kernel invocation methods.
       auto accA = bufA.get_access<access::mode::read>(h);
       auto accB = bufB.get_access<access::mode::read_write>(h);
 
-      h.host_task([=]() {
+      h.single_task([=]() {
         accB[0] = accA[0] * std::rand();
       }
 
       auto accC = bufC.get_access<access::mode::read>(h);
-      h.host_task([=]() {
+      h.single_task([=]() {
         accC[0] += accA[0] * accB[0];
       }
     };
@@ -78,7 +79,7 @@ class host_handler {
 
  public:
   template <typename FunctorT>
-  void host_task(FunctorT hostFunction);
+  void single_task(FunctorT hostFunction);
 };
 }  // namespace sycl
 }  // namespace cl
@@ -86,7 +87,7 @@ class host_handler {
 
 | Method | Description |
 |--------|-------------|
-| *`template <typename FunctorT> void host_task(FunctorT hostFunction)`* | The user-provided hostFunction will be executed once all requirements for the command group are met. The hostFunction must be a Callable object. |
+| *`template <typename FunctorT> void single_task(FunctorT hostFunction)`* | The user-provided hostFunction will be executed once all requirements for the command group are met. The hostFunction must be a Callable object. |
 
 ### Updating data on the host or the device from SYCL queues
 
