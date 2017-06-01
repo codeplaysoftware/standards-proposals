@@ -32,8 +32,6 @@ We have considered many alternative approaches to solving these problems:
 
 * We considered having unique classes such as a `tied_buffer` class, which would be able to provide additional semantics and interface but would inherit from the original buffer class. However this approach is limited as you cannot combine the buffer types described above, for example, you could not have a tied buffer that is also a map buffer.
 
-* We considered using a polymorphic allocator to make the buffer type generic for all allocator types, which would solve the problem of storing the buffer generically for cases where the behaviour is allocator related but would not cover all buffer variants described above.
-
 ## Proposal
 
 The proposal is to add a variadic parameter pack to the constructors of the buffer class that can be used to specify tags to a buffer. This will mean removing the default argument for the allocator parameter and instead, having two overloads of each constructor instead.
@@ -92,7 +90,6 @@ class buffer {
 ## Example
 
 ```cpp
-
 int main() {
 
   std::vector<buffer<int, 1>> bufferList;
