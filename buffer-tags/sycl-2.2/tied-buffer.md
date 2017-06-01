@@ -1,8 +1,8 @@
-# Buffer tied to a single context
+# Buffer tied to a Context
 
 | Proposal ID | CP008 |
 |-------------|--------|
-| Name | Buffer tied to a single context |
+| Name | Buffer tied to a Context |
 | Date of Creation | 14 March 2017 |
 | Target | SYCL 2.2 |
 | Current Status | _Work In Progress_ |
