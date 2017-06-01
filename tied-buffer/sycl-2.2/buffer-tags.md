@@ -12,19 +12,19 @@
 
 ## Overview
 
-This proposal aims to define an interface for specialising the construction of the buffer class whilst still allowing buffers of different types to be stored in a generic container, via the use of buffer tags and a common base class.
+This proposal aims to define an interface for specialising the construction of the buffer class whilst still allowing buffers of different types to be stored in a generic container, via the use of buffer tags.
 
 ## Requirements
 
 This proposal aims to provide a solution to two problems.
 
-Firstly many use cases for specialisations of the buffer have emerged, each providing alternate semantics to the traditional buffer. These include a context tied buffer, a map buffer and an SVM buffer.
+Firstly many use cases for specialisations of the buffer have emerged, each providing alternate semantics to the traditional buffer. These include a context tied buffer, a map buffer and an SVM buffer:
 
 * The context tied buffer is a buffer that can only be associated with a single context which can be useful particularly for clarifying the semantics when using OpenCL interoperability; this requires an additional member function on the buffer to return the associated context which is not normally available.
 * The map buffer is a buffer that does not allocate memory within the runtime and instead uses the host provided pointer directly; this mainly affects the runtime semantics of the buffer but also restricts the constructors that are available for the buffer.
 * The SVM buffer is a buffer that allocates memory as shared virtual memory (either course-grained or buffer level fine grained).
 
-Secondly, buffers currently suffer from the problem that they cannot be stored generically, for example, if you wanted to have a vector of buffers and store a map buffer with a non-map buffer.
+Secondly, buffers currently suffer from the problem that they cannot be stored generically, for example, if a user wanted to have a vector of buffers and store a map buffer with a non-map buffer.
 
 ## Previous Proposals
 

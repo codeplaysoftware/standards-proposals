@@ -1,6 +1,6 @@
 # Buffer Tags
 
-| Proposal ID | CP002 |
+| Proposal ID | CP008 |
 |-------------|--------|
 | Name | Buffer Tags |
 | Previous Names | Buffer tied to a Context |
@@ -13,7 +13,7 @@
 
 ## Overview
 
-This proposal aims to define an interface for specialising the buffer class whilst still allowing buffers of different types to be soted in a generic container, via the use of buffer tags and a common base class.
+This proposal aims to define an interface for specialising the buffer class whilst still allowing buffers of different types to be stored in a generic container, via the use of buffer tags.
 
 ## Versions
 
