@@ -13,11 +13,11 @@
 
 ## Overview
 
-This proposal aims to define an interface for specialising the buffer class whilst still allowing buffers of different types to be stored in a generic container, via the use of buffer tags.
+This proposal aims to define an interface for specialising the buffer class whilst still allowing buffers of different types to be stored in a generic container, via the use of buffer properties.
 
 ## Versions
 
 | Version | Last Modified | Document |
 |---------|----- | ---------|
-| Buffer tied to a Context | 19 April 2017 | [Link](sycl-2.2/tied-buffer.md) |
-| Buffer Tags | 31 May 2017 | [Link](sycl-2.2/buffer-tags.md) |
+| Buffer tied to a Context | 9 Jun 2017 | [Link](sycl-2.2/tied-buffer.md) |
+| Buffer Tags | 9 Jun 2017 | [Link](sycl-2.2/buffer-tags.md) |

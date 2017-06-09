@@ -14,6 +14,9 @@
 
 This proposal aims to define an interface for specialising the construction of the buffer class whilst still allowing buffers of different types to be stored in a generic container, via the use of buffer tags. 
 Each tag represent a different property of a buffer.
+By defining properties for buffers and enabling expressing them independently from the
+buffer API we simplify the SYCL specification and we enable future capabilities to be added
+seamlessly. 
 
 ## Revisions
 
@@ -98,7 +101,7 @@ class buffer {
 
 ## Defined properties
 
-### SYCL 1.2.1 
+### Extension to SYCL 1.2
 
 * *map_ptr*: Buffer will use the given pointer exclusively for host access.
 
@@ -106,6 +109,8 @@ class buffer {
 struct map_ptr {
 
   map_ptr() = default;
+
+  // Implementation defined members
 };
 ```
 
@@ -113,11 +118,11 @@ struct map_ptr {
 
 ```cpp
 struct cl_interop {
-  ...
   // Construct a property for interoperability
-  cl_interop(cl_mem clMemObject) { }
-  // Retrieves the OpenCL memory object
-  cl_mem get_cl_mem();
+  cl_interop(cl_mem clMemObject, cl::sycl::event event, cl::sycl::queue q) {
+      // implementation defined
+   }
+  // Implementation defined members
 };
 ```
 
@@ -127,18 +132,20 @@ struct cl_interop {
 ```cpp
 struct gl_interop {
   gl_interop() = default;
+  // Implementation defined members
 };
 ```
 
 ### SYCL 2.2
 
-All the SYCL 1.2.1 properties plus:
+All the previous extension properties plus:
 
 * *svm*: The buffer is used for SVM allocation purposes
 
 ```cpp
 struct svm {
-  svm() = default;
+  svm(SVM) = default;
+  // Implementation defined members
 };
 ```
 
@@ -156,10 +163,11 @@ int main() {
   bufferList.push_back(buffer<int, 1>(hostPtr, range));
   // Buffer that is maping a host pointer with the device
   bufferList.push_back(buffer<int, 1>(hostPtr, range, 
-                                      property::map));
+                                      property::map()));
   // Buffer using an interop constructor
   bufferList.push_back(buffer<int, 1>(hostPtr, range, 
-                                      property::cl_interop(clMemObject)));
+                                      property::cl_interop(clMemObject, 
+                                                           clEvent, syclQueue)));
 
   for(auto& buf : bufferList) {
     if (buf.has_property<property::cl_interop>())) {

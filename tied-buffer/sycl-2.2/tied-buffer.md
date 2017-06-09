@@ -39,10 +39,14 @@ buffer and this context-specific variant:
 ```cpp
 struct context_bound {
   context_bound(cl::sycl::context context);
+
+  cl::sycl::context get_context();
 };
+```
 
-All the API interface for the normal buffers is available.
-
+Tied buffers have the same methods than the generic buffers, plus
+an extra *get\_context()* method that retrieves the context associated
+with the buffer.
 
 ```cpp
 template<typename T, int dim,
@@ -55,11 +59,8 @@ class buffer {
 };
 ```
 
-Note that in this case we can offer a `get_context` method for the memory
-object, that returns the SYCL context that this `tied_buffer` is associated
-with.
-
-In case of an error, the `runtime_error` exception should be thrown.
+In case of an error, such as a tied buffer being used on the wrong
+context, the `runtime_error` exception should be thrown.
 
 ## Shared Virtual Memory support
 
