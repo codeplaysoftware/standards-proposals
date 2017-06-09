@@ -177,6 +177,129 @@ int main() {
 }
 ```
 
+## Typical Implementation
+
+```cpp
+class buffer_allocator { int i; };
+class custom_allocator {};
+class context {};
+
+namespace prop {
+
+struct svm {};
+struct mapping {};
+struct context_bound {
+  context_bound(context &c)
+    : m_context(c) {}
+// private:
+  context __get_context() { return m_context; }
+
+  context m_context;
+};
+
+}
+
+enum class property_enum {
+  allocator = 0,
+  mapping = 1,
+  context_bound = 2,
+  svm = 3
+};
+
+template <typename propT>
+struct get_property_enum {
+  static const property_enum value = property_enum::allocator;
+};
+
+template <>
+struct get_property_enum<prop::mapping> {
+  static const property_enum value = property_enum::mapping;
+};
+
+template <>
+struct get_property_enum<prop::context_bound> {
+  static const property_enum value = property_enum::context_bound;
+};
+
+template <>
+struct get_property_enum<prop::svm> {
+  static const property_enum value = property_enum::svm;
+};
+
+template <typename dataT, int kElems, typename allocatorT = buffer_allocator>
+class buffer {
+public:
+  template <typename... propTN>
+  buffer(propTN... properties) {
+    process_properties(properties...);
+  }
+
+  template <typename propT, typename... propTN>
+  void process_properties(propT prop, propTN... properties) {
+    constexpr property_enum e = get_property_enum<propT>::value;
+    m_hasProperty[static_cast<int>(e)] = true;
+    process_property(prop);
+    process_properties(properties...);
+  }
+
+  void process_properties() {
+  }
+
+  void process_property(prop::context_bound prop) {
+    m_context = prop.__get_context();
+  }
+
+  void process_property(prop::mapping prop) {
+  }
+
+  void process_property(prop::svm prop) {
+  }
+
+  void process_property(allocatorT prop) {
+    m_allocator = prop;
+  }
+
+  template <typename propT>
+  bool has_property() {
+    constexpr property_enum e = get_property_enum<propT>::value;
+    return m_hasProperty[static_cast<int>(e)];
+    }
+
+private:
+
+  bool m_hasProperty[4];
+  context m_context;
+  allocatorT m_allocator;
+};
+
+int main () {
+
+  context myContext;
+
+  std::vector<buffer<int, 1>> bufferList;
+
+  bufferList.push_back(buffer<int, 1>());
+  bufferList.push_back(buffer<int, 1>(prop::mapping()));
+  bufferList.push_back(buffer<int, 1>(buffer_allocator{}, prop::context_bound(myContext)));
+  bufferList.push_back(buffer<int, 1>(prop::context_bound(myContext)));
+  bufferList.push_back(buffer<int, 1>(prop::svm()));
+  bufferList.push_back(buffer<int, 1>(buffer_allocator{}, prop::mapping(), buffer_allocator{}));
+
+  std::vector<buffer<int, 1, std::allocator<int>>> customBufferList;
+  customBufferList.push_back(buffer<int, 1, std::allocator<int>>());
+  customBufferList.push_back(buffer<int, 1, std::allocator<int>>(prop::mapping()));
+
+  for(auto& buf : bufferList) {
+    if (buf.has_property<prop::mapping>()) {
+      // ...
+    } else if (buf.has_property<prop::svm>()) {
+      // ...
+    } else if (buf.has_property<prop::context_bound>()) {
+      // ...
+    }
+  }
+```
+
 ## Alternative Solutions
 
 An alternative solution that was considered was to have the buffer tags be specified as template arguments to the buffer class.
