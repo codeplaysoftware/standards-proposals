@@ -14,7 +14,7 @@
 
 This proposal aims to define an interface for specialising the construction of the buffer class whilst still allowing buffers of different types to be stored in a generic container, via the use of buffer tags. 
 Each tag represent a different property of a buffer.
-By defining properties for buffers and enabling expressing them independently from the
+By defining properties for buffers and allowing them to be expressed independently from the
 buffer API we simplify the SYCL specification and we enable future capabilities to be added
 seamlessly. 
 
@@ -64,7 +64,7 @@ With this interface, a user can specify a specialisation of the buffer class by 
 
 ```cpp
 namespace property {
-  struct map_ptr;
+  struct map;
   struct cl_interop;
   struct gl_interop;
   struct svm;  // SYCL 2.2 Only
