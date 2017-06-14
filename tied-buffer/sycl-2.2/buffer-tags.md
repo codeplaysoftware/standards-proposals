@@ -22,12 +22,16 @@ seamlessly.
 
 This revision clarifies the behaviour of the tags and how they map to buffer
 properties.
+It also enables users to retrieve the properties of a buffer object, thus,
+allowing querying for specific values of a property.
 
 ## Requirements
 
 This proposal aims to provide a solution to two problems.
 
-Firstly many use cases for specialisations of the buffer have emerged, each providing alternate semantics to the traditional buffer. These include a context tied buffer, a map buffer and an SVM buffer:
+Firstly many use cases for specialisations of the buffer have emerged, each providing alternate semantics to the traditional buffer. 
+Various ideas for buffers tied to context, for buffers that don't allocate
+additional memory or interoperability variants have arised.
 
 * The context tied buffer is a buffer that can only be associated with a single context which can be useful particularly for clarifying the semantics when using OpenCL interoperability; this requires an additional member function on the buffer to return the associated context which is not normally available.
 * The map buffer is a buffer that does not allocate memory within the runtime and instead uses the host provided pointer directly; this mainly affects the runtime semantics of the buffer but also restricts the constructors that are available for the buffer.
@@ -60,40 +64,39 @@ class buffer {
 };
 ```
 
-With this interface, a user can specify a specialisation of the buffer class by simply providing one or more values of the following tag enum class to the constructor of a buffer.
+With this interface, a user can specify a specialisation of the buffer class by simply providing one or more values of the following property structs to the constructor of a buffer.
+A property is a struct that contains a constructor and possibly 
+property-specific meethods. 
+
 
 ```cpp
 namespace property {
-  struct map;
+namespace buffer {
+  struct use_host_ptr;
   struct cl_interop;
-  struct gl_interop;
   struct svm;  // SYCL 2.2 Only
-};
+}  // namespace buffer
+}  // namespace property;
 ```
 
-Some of these tags will require an additional interface for the buffer class, for example, the `property::context_bound` tag will need a `get_context()` member function.
-
-```cpp
-template <typename dataT, int kElems, typename allocatorT = buffer_allocator<dataT>>
-class buffer {
-  ...
-
-  context get_context() const;
-
-  ...
-};
-```
-
-However functions such as `get_context()` will only be valid if the `buffer` was constructed with the `property::context_bound` tag.
 The user can query for a specific property on any buffer by using the
-*has\_property* method.
+*has\_property* method. 
+An instance of the property can be obtained from the buffer using
+the *get\_property* method.
+This enables users to retrieve the values passed for an specific property
+during construction of the buffer.
+If the property is not available, an exception is thrown.
 
 ```cpp
 template <typename dataT, int kElems, typename allocatorT = buffer_allocator<dataT>>
 class buffer {
   ...
 
-  bool has_property(tag t)
+  template<typename PropertyT>
+  bool has_property() const;
+
+  template<typename PropertyT>
+  PropertyT get_property() const;
 
   ...
 };
@@ -103,14 +106,14 @@ class buffer {
 
 ### Extension to SYCL 1.2
 
-* *map_ptr*: Buffer will use the given pointer exclusively for host access.
+* *use_host_ptr*: Buffer will use the given pointer exclusively for host access,
+instead of allocating intermediate memory. This was previously implemented
+using a buffer with a map allocator.
 
 ```cpp
-struct map_ptr {
-
-  map_ptr() = default;
-
-  // Implementation defined members
+struct use_host_ptr {
+  // Constructs a property that enables using the host pointer for
+  use_host_ptr() = default;
 };
 ```
 
@@ -119,22 +122,16 @@ struct map_ptr {
 ```cpp
 struct cl_interop {
   // Construct a property for interoperability
-  cl_interop(cl_mem clMemObject, cl::sycl::event event, cl::sycl::queue q) {
-      // implementation defined
-   }
-  // Implementation defined members
+  cl_interop(cl_mem clMemObject, cl::sycl::event event, cl::sycl::queue q);
+  // Returns the OpenCL Mem object
+  cl_mem get_cl();
+  // Returns the associated SYCL Event
+  cl::sycl::event get_event();
+  // Returns the associated SYCL queue
+  cl::sycl::queue get_queue();
 };
 ```
 
-
-* *gl_interop*: Buffer constructed for interoperability with OpenGL objects
-
-```cpp
-struct gl_interop {
-  gl_interop() = default;
-  // Implementation defined members
-};
-```
 
 ### SYCL 2.2
 
@@ -144,8 +141,7 @@ All the previous extension properties plus:
 
 ```cpp
 struct svm {
-  svm(SVM) = default;
-  // Implementation defined members
+  svm() = default;
 };
 ```
 
@@ -163,7 +159,7 @@ int main() {
   bufferList.push_back(buffer<int, 1>(hostPtr, range));
   // Buffer that is maping a host pointer with the device
   bufferList.push_back(buffer<int, 1>(hostPtr, range, 
-                                      property::map()));
+                                      property::use_host_ptr()));
   // Buffer using an interop constructor
   bufferList.push_back(buffer<int, 1>(hostPtr, range, 
                                       property::cl_interop(clMemObject, 
@@ -171,133 +167,10 @@ int main() {
 
   for(auto& buf : bufferList) {
     if (buf.has_property<property::cl_interop>())) {
-      // Custom OpenCL-interop code
+       auto clMem = buf.get_property<property::cl_interop>().get_cl_mem():
     }
   }
 }
-```
-
-## Typical Implementation
-
-```cpp
-class buffer_allocator { int i; };
-class custom_allocator {};
-class context {};
-
-namespace prop {
-
-struct svm {};
-struct mapping {};
-struct context_bound {
-  context_bound(context &c)
-    : m_context(c) {}
-// private:
-  context __get_context() { return m_context; }
-
-  context m_context;
-};
-
-}
-
-enum class property_enum {
-  allocator = 0,
-  mapping = 1,
-  context_bound = 2,
-  svm = 3
-};
-
-template <typename propT>
-struct get_property_enum {
-  static const property_enum value = property_enum::allocator;
-};
-
-template <>
-struct get_property_enum<prop::mapping> {
-  static const property_enum value = property_enum::mapping;
-};
-
-template <>
-struct get_property_enum<prop::context_bound> {
-  static const property_enum value = property_enum::context_bound;
-};
-
-template <>
-struct get_property_enum<prop::svm> {
-  static const property_enum value = property_enum::svm;
-};
-
-template <typename dataT, int kElems, typename allocatorT = buffer_allocator>
-class buffer {
-public:
-  template <typename... propTN>
-  buffer(propTN... properties) {
-    process_properties(properties...);
-  }
-
-  template <typename propT, typename... propTN>
-  void process_properties(propT prop, propTN... properties) {
-    constexpr property_enum e = get_property_enum<propT>::value;
-    m_hasProperty[static_cast<int>(e)] = true;
-    process_property(prop);
-    process_properties(properties...);
-  }
-
-  void process_properties() {
-  }
-
-  void process_property(prop::context_bound prop) {
-    m_context = prop.__get_context();
-  }
-
-  void process_property(prop::mapping prop) {
-  }
-
-  void process_property(prop::svm prop) {
-  }
-
-  void process_property(allocatorT prop) {
-    m_allocator = prop;
-  }
-
-  template <typename propT>
-  bool has_property() {
-    constexpr property_enum e = get_property_enum<propT>::value;
-    return m_hasProperty[static_cast<int>(e)];
-    }
-
-private:
-
-  bool m_hasProperty[4];
-  context m_context;
-  allocatorT m_allocator;
-};
-
-int main () {
-
-  context myContext;
-
-  std::vector<buffer<int, 1>> bufferList;
-
-  bufferList.push_back(buffer<int, 1>());
-  bufferList.push_back(buffer<int, 1>(prop::mapping()));
-  bufferList.push_back(buffer<int, 1>(buffer_allocator{}, prop::context_bound(myContext)));
-  bufferList.push_back(buffer<int, 1>(prop::context_bound(myContext)));
-  bufferList.push_back(buffer<int, 1>(prop::svm()));
-  bufferList.push_back(buffer<int, 1>(buffer_allocator{}, prop::mapping(), buffer_allocator{}));
-
-  std::vector<buffer<int, 1, std::allocator<int>>> customBufferList;
-  customBufferList.push_back(buffer<int, 1, std::allocator<int>>());
-  customBufferList.push_back(buffer<int, 1, std::allocator<int>>(prop::mapping()));
-
-  for(auto& buf : bufferList) {
-    if (buf.has_property<prop::mapping>()) {
-      // ...
-    } else if (buf.has_property<prop::svm>()) {
-      // ...
-    } else if (buf.has_property<prop::context_bound>()) {
-      // ...
-    }
-  }
 ```
 
 ## Alternative Solutions

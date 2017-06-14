@@ -44,21 +44,6 @@ struct context_bound {
 };
 ```
 
-Tied buffers have the same methods than the generic buffers, plus
-an extra *get\_context()* method that retrieves the context associated
-with the buffer.
-
-```cpp
-template<typename T, int dim,
-          typename AllocatorT = cl::sycl::buffer_allocator<T>>
-class buffer {
-  public:
-
-// Additional method with property context_bound
-    context get_context() const;
-};
-```
-
 In case of an error, such as a tied buffer being used on the wrong
 context, the `runtime_error` exception should be thrown.
 
@@ -114,7 +99,7 @@ std::experimental::for_each(sycl_named_policy<example>(otherQueue),
  * performed.
  */
 buffer<float, 1> tmp{deviceContext, myRange, 
-                     buffer::property::context_bound(deviceContext)};
+                     property::buffer::context_bound(deviceContext)};
 
 bool firstIter = true;
 
