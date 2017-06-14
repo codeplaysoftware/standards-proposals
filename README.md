@@ -42,6 +42,7 @@ Each proposal in the table below will be tagged with one of the following states
 | --- | ---------------------- | ------ | ---------------- | ------------- | ------ |
 | CP001 | [Asynchronous Data Flow](asynchronous-data-flow/index.md) | SYCL 2.2 |   20 July 2016   | 11 Jan 2017   | _Work in Progress_  |
 | CP003 | [Implicit Accessor Conversions](implicit-accessor-conversions/sycl-2.2/implicit-accessor-conversions.md) | SYCL 2.2 | 28 March 2017 | 30 March 2017 | _Work in Progress_ |
+| CP004 | [Placeholder Accessors](placeholder_accessors.md) | SYCL 2.2 | 20 July 2016 | 12 Jun 2017 | _Work in Progress_ |
 | CP005 | [Asynchronous managed pointer for Heterogeneous computing](managed-pointer/index.md) | ISO C++ SG1, SG14 | 22 July 2016 | 6 Feb 2017 | _Published_ |
 | CP006 | [Maybe unused attribute in decomposition declarations](defects-2017-02/cpp-17/maybe-unused-decomposition-decls.md) | ISO C++ EWG | 22 February 2017 | 22 February 2017 | _Published_ |
 | CP007 | [Vector Load and Store Operations](vector-operations/sycl-2.2/vector-loads-and-stores.md) | SYCL 2.2 | 29 March 2017 | 30 March 2017 | _Work in Progress_ |
