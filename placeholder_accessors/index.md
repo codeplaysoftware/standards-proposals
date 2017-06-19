@@ -9,12 +9,12 @@
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 | Requirements | CP001 |
-| Contributors | Gordon Brown <gordon@codeplay.com>, Victor Lomuller <victor@codeplay.com>, Mehdi Goli <mehdi.goli@codeplay.com>, Peter Zuzek <peter@codeplay.com> |
+| Contributors | Gordon Brown <gordon@codeplay.com>, Victor Lomuller <victor@codeplay.com>, Mehdi Goli <mehdi.goli@codeplay.com>, Peter Zuzek <peter@codeplay.com>, Luke Iwanski <luke@codeplay.com> |
 
 ## Overview
 
 SYCL enables C++ developers to fully integrate the usage of accelerators into their applications
-with a single-source approach. This facilitates developers to port more complex code bases 
+with a single-source approach. This facilitates developers to port more complex code bases
 to OpenCL platforms with less effort. In some cases, such as TensorFlow or Parallel STL, this porting would not be possible without a single-source programming model.
 The feedback received from various projects suggests that restricting the creation
 of accessors to the command group makes difficult porting existing applications.
@@ -37,13 +37,13 @@ in iterators for [ParallelSTL][3].
 This is currently not possible, as the SYCL specification mandates that accessors
 can only be constructed with a handler, which only exists inside of a command group.
 The rationale of this requirement still holds: Accessors define not only a pointer to an object
-on the device, but are also used for dependency analysis and identification of kernel 
+on the device, but are also used for dependency analysis and identification of kernel
 arguments. Any of those can be defined outside of a command group scope.
 
 
 An example of this situation can be seen in the SYCL-BLAS _view_ classes.
 In normal C++, the _view_ class stores a reference to a container, such
-as _std::vector<ScalarT>_. 
+as _std::vector<ScalarT>_.
 The elements of the container can be accessed using _ScalarT& view::eval(int elemId)_ method.
 When implementing a SYCL variant of the view, developers encountered the problem that,
 although the _view_ class can store a reference to the buffer, the _eval_ method cannot
@@ -51,7 +51,9 @@ be implemented, since buffers cannot be accessed directly.
 Creating a host accessor will enable accessing the element on the host, but not
 on the device. In addition, it is not possible to return a reference to the element
 since the host accessor will be destroyed at the end of the function, therefore
-rendering the reference invalid. 
+rendering the reference invalid.
+
+Another example of this situation can be seen in [TensorFlow issue][4]
 
 The current implementation of SYCL-BLAS uses a compile-time depth-first-search
 mechanism to replace the usage of buffers to accessors, recreating the same
@@ -63,8 +65,8 @@ in the host, although somehow the user of the library does not need to care
 about them.
 
 In this particular case, the ability for developers to create accessors
-not bound to a specific context simplifies the development. 
-The _blas::view_ will store a "placeholder accessor" instead of a reference to a 
+not bound to a specific context simplifies the development.
+The _blas::view_ will store a "placeholder accessor" instead of a reference to a
 buffer. This can be registered (bound) to a specific command group later on.
 
 
@@ -76,7 +78,7 @@ The placeholder accessor still cannot be accessed on the host, keeping the
 SYCL semantics. However, on the device side, the placeholder accessor can
 be used as a normal device accessor to the type of memory associated with it.
 In order to associate an accessor with the actual command group where it
-will be executed, the accessor needs to be registered using the handler 
+will be executed, the accessor needs to be registered using the handler
 method *require*.
 
 The following example illustrates a simple use case:
@@ -86,7 +88,7 @@ buffer<int, 1> buf(range<1>(10));
 // We construct the placeholder accessor
 // The SYCL buffer will be alive for as long as this accessor is
 // alive
-auto pAcc = buf.get_access<access::mode::read_write, access::target::global, 
+auto pAcc = buf.get_access<access::mode::read_write, access::target::global,
                            access::placeholder::true_t>();
 
 myQueue.submit([&](handler& h) {
@@ -105,21 +107,21 @@ myQueue.submit([&](handler& h) {
   })
 });
 
-/* Invalid  - Placeholders are not host accessors. 
+/* Invalid  - Placeholders are not host accessors.
    However, this will only cause an error (exception) at runtime.
 ASSERT(pAcc[0] == 2) */
 
 { // Host accessors can be constructed as usual from the buffer
-  auto hostAcc = buf.get_accessor<access::mode::read_write, 
+  auto hostAcc = buf.get_accessor<access::mode::read_write,
                                   access::target::global>();
   ASSERT(hostAcc[0] == 2);
 }
 ```
 
 A placeholder accessor type on its own does not define an access requirement
-since it is not associated with a command group. 
+since it is not associated with a command group.
 Therefore, the creation of a placeholder accessor does not affect the
-scope of accessing the data or the memory updates on device or host. 
+scope of accessing the data or the memory updates on device or host.
 In a way, a _placeholder accessor represents a set of requirements to
 a memory object to an unknown context_, enabling the lazy definition of
 the context to which the requirements can be applied.
@@ -146,7 +148,7 @@ enum class placeholder {
 ```
 
 An extra template parameter should be added to the accessor class, which
-will be defaulted to false to ensure the current behaviour of accessors is 
+will be defaulted to false to ensure the current behaviour of accessors is
 not modified.
 
 ```
@@ -165,7 +167,7 @@ This returns true if the accessor is a placeholder, and false otherwise.
 
 ### When `is_placeholder` returns false
 
-The accessor API should be the same as the current SYCL specification, 
+The accessor API should be the same as the current SYCL specification,
 except for the aforementioned modifications.
 
 ### When `is_placeholder` returns true
@@ -173,24 +175,25 @@ except for the aforementioned modifications.
 The accessor API features constructors that don't take the handler parameter.
 
 In addition, a new method to obtain a normal accessor from the placeholder
-accessor is provided. 
+accessor is provided.
 This enables users to retrieve a normal accessor that can be used in
 other command groups that don't require placeholder accessors directly.
 
 ```
-accessor<T, dim, mode, target, 
+accessor<T, dim, mode, target,
           access::placeholer::false_t> get_access(handler& h) const;
 ```
 
 
 ### New handler API entries
 
-The handler gains a new method, 
-`handler::require(accessor<T, dim, mode, target, acess::placeholder::true_t>)` 
-that registers the requirements of the placeholder accessor on the given 
+The handler gains a new method,
+`handler::require(accessor<T, dim, mode, target, acess::placeholder::true_t>)`
+that registers the requirements of the placeholder accessor on the given
 command group.
 
 
 [1]: https://github.com/codeplaysoftware/sycl-blas "SYCL-BLAS"
-[2]: https://github.com/benoitsteiner/tensorflow-opencl "TensorFlow/Eigen"
+[2]: https://github.com/lukeiwanski/tensorflow "TensorFlow/Eigen"
 [3]: https://github.com/KhronosGroup/SyclParallelSTL
+[4]: https://github.com/lukeiwanski/tensorflow/issues/89
