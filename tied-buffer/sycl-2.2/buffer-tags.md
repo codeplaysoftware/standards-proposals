@@ -1,8 +1,8 @@
-# Buffer tied to a single context
+# Buffer Properties
 
 | Proposal ID | CP008 |
 |-------------|--------|
-| Name | Buffer tied to a single context |
+| Name | Buffer Properties |
 | Date of Creation | 14 March 2017 |
 | Target | SYCL 2.2 |
 | Current Status | _Work In Progress_ |
@@ -12,13 +12,26 @@
 
 ## Overview
 
-This proposal aims to define an interface for specialising the construction of the buffer class whilst still allowing buffers of different types to be stored in a generic container, via the use of buffer tags.
+This proposal aims to define an interface for specialising the construction of the buffer class whilst still allowing buffers of different types to be stored in a generic container, via the use of buffer tags. 
+Each tag represent a different property of a buffer.
+By defining properties for buffers and allowing them to be expressed independently from the
+buffer API we simplify the SYCL specification and we enable future capabilities to be added
+seamlessly. 
+
+## Revisions
+
+This revision clarifies the behaviour of the tags and how they map to buffer
+properties.
+It also enables users to retrieve the properties of a buffer object, thus,
+allowing querying for specific values of a property.
 
 ## Requirements
 
 This proposal aims to provide a solution to two problems.
 
-Firstly many use cases for specialisations of the buffer have emerged, each providing alternate semantics to the traditional buffer. These include a context tied buffer, a map buffer and an SVM buffer:
+Firstly many use cases for specialisations of the buffer have emerged, each providing alternate semantics to the traditional buffer. 
+Various ideas for buffers tied to context, for buffers that don't allocate
+additional memory or interoperability variants have arised.
 
 * The context tied buffer is a buffer that can only be associated with a single context which can be useful particularly for clarifying the semantics when using OpenCL interoperability; this requires an additional member function on the buffer to return the associated context which is not normally available.
 * The map buffer is a buffer that does not allocate memory within the runtime and instead uses the host provided pointer directly; this mainly affects the runtime semantics of the buffer but also restricts the constructors that are available for the buffer.
@@ -51,59 +64,110 @@ class buffer {
 };
 ```
 
-With this interface, a user can specify a specialisation of the buffer class by simply providing one or more values of the following tag enum class to the constructor of a buffer.
+With this interface, a user can specify a specialisation of the buffer class by simply providing one or more values of the following property structs to the constructor of a buffer.
+A property is a struct that contains a constructor and possibly 
+property-specific meethods. 
+
 
 ```cpp
-enum class tag {
-  context_bound,
-  mapping,
-  svm
-};
+namespace property {
+namespace buffer {
+  struct use_host_ptr;
+  struct cl_interop;
+  struct svm;  // SYCL 2.2 Only
+}  // namespace buffer
+}  // namespace property;
 ```
 
-Some of these tags will require an additional interface for the buffer class, for example, the `tag::context_bound` tag will need a `get_context()` member function.
+The user can query for a specific property on any buffer by using the
+*has\_property* method. 
+An instance of the property can be obtained from the buffer using
+the *get\_property* method.
+This enables users to retrieve the values passed for an specific property
+during construction of the buffer.
+If the property is not available, an exception is thrown.
 
 ```cpp
 template <typename dataT, int kElems, typename allocatorT = buffer_allocator<dataT>>
 class buffer {
   ...
 
-  context get_context() const;
+  template<typename PropertyT>
+  bool has_property() const;
+
+  template<typename PropertyT>
+  PropertyT get_property() const;
 
   ...
 };
 ```
 
-However functions such as `get_context()` will only be valid if the `buffer` was constructed with the `tag::context_bound` tag so there must be a way for the user to query whether a `buffer` has a particular tag.
+## Defined properties
+
+### Extension to SYCL 1.2
+
+* *use_host_ptr*: Buffer will use the given pointer exclusively for host access,
+instead of allocating intermediate memory. This was previously implemented
+using a buffer with a map allocator.
 
 ```cpp
-template <typename dataT, int kElems, typename allocatorT = buffer_allocator<dataT>>
-class buffer {
-  ...
+struct use_host_ptr {
+  // Constructs a property that enables using the host pointer for
+  use_host_ptr() = default;
+};
+```
 
-  bool has_tag(tag t)
+* *cl_interop*: Buffer constructed for interoperability with OpenCL cl\_mem objects
 
-  ...
+```cpp
+struct cl_interop {
+  // Construct a property for interoperability
+  cl_interop(cl_mem clMemObject, cl::sycl::event event, cl::sycl::queue q);
+  // Returns the OpenCL Mem object
+  cl_mem get_cl();
+  // Returns the associated SYCL Event
+  cl::sycl::event get_event();
+  // Returns the associated SYCL queue
+  cl::sycl::queue get_queue();
+};
+```
+
+
+### SYCL 2.2
+
+All the previous extension properties plus:
+
+* *svm*: The buffer is used for SVM allocation purposes
+
+```cpp
+struct svm {
+  svm() = default;
 };
 ```
 
 ## Example
+
+The following example creates a list of buffers with different
+properties.
 
 ```cpp
 int main() {
 
   std::vector<buffer<int, 1>> bufferList;
 
+  // Normal buffer
   bufferList.push_back(buffer<int, 1>(hostPtr, range));
-  bufferList.push_back(buffer<int, 1>(hostPtr, range, tag::mapping));
-  bufferList.push_back(buffer<int, 1>(hostPtr, range, tag::context_bound));
-  bufferList.push_back(buffer<int, 1>(hostPtr, range, tag::svm));
-  bufferList.push_back(buffer<int, 1>(hostPtr, range, tag::mapping, tag::context_bound));
+  // Buffer that is maping a host pointer with the device
+  bufferList.push_back(buffer<int, 1>(hostPtr, range, 
+                                      property::use_host_ptr()));
+  // Buffer using an interop constructor
+  bufferList.push_back(buffer<int, 1>(hostPtr, range, 
+                                      property::cl_interop(clMemObject, 
+                                                           clEvent, syclQueue)));
 
-  context *contextPtr = nullptr;
   for(auto& buf : bufferList) {
-    if (buf.has_tag(tag::context_bound)) {
-      contextPtr = get_info<info::context::gl_interop>();
+    if (buf.has_property<property::cl_interop>())) {
+       auto clMem = buf.get_property<property::cl_interop>().get_cl_mem():
     }
   }
 }

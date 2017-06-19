@@ -15,89 +15,37 @@
 This proposal aims to offer a buffer object that is tied to a specific SYCL 
 context, which allow  users to provide extra information to the SYCL 
 implementation to optimize usage for a single context and device.
-This concept vagely exists when using Shared Virtual Memory constructors
+This concept vaguely exists when using Shared Virtual Memory constructors
 on buffers, but it is defined as a specific use case for SVM buffers.
 With a specific `tied_buffer` class we aim to take advantage of
 the lower-overhead of a single-context buffer and simplify the 
 usage of SVM memory on SYCL 2.2
 
+## Revisions
+
+This revision uses buffer properties instead of a separate buffer
+class to describe the behaviour of the tied buffer.
+
 ## Interface changes
 
-This proposal adds a new type of buffer, called `tied_buffer` which
-constructs a SYCL buffer that is tied to only one context, and therefore
-will only be accessible from queues that are associated with that context.
-The `tied_buffer` is derived from the `buffer` class to enable creating 
-collections of both types of buffers. However, methods are not inherited
-publicly to enforce type safety across buffer types.
+This proposal adds a new property for buffers, *buffer::property::context\_bound*.
+A SYCL buffer with the *context bound* property can only be used with one context,
+and its values are only accessible from queues that are associated with
+said context.
 
-A separate buffer type makes a clear distintion between the normal SYCL
-buffer and this context-specific variant.
-
-All the API interface for the normal buffers is available.
-
+A separate buffer property makes a clear distinction between the normal SYCL
+buffer and this context-specific variant:
 
 ```cpp
-template<typename T, int dim,
-          typename AllocatorT = cl::sycl::buffer_allocator<T>>
-class tied_buffer : protected buffer <T, AllocatorT> {
+struct context_bound {
+  context_bound(cl::sycl::context context);
 
-  public:
-    tied_buffer(context& syclContext, T * hostPointer, 
-                const range<dim> bufferRange,
-                AllocatorT allocator = {});
-
-    tied_buffer(context& syclContext, const T * hostPointer, 
-                const range<dim> bufferRange,
-                AllocatorT allocator = {});
-
-    tied_buffer(context& syclContext, shared_ptr_class<T> hostData,
-                const range<dim> bufferRange,
-                const AllocatorT allocator = {});
-
-    tied_buffer(context& syclContext, 
-                const range<dimensions> &bufferRange,
-                AllocatorT allocator = {});
-
-    template<typename OAllocatorT = AllocatorT>
-    tied_buffer(context& syclContext, tied_buffer<T, dim, OAllocatorT> &tb,
-                const id<dimensions> &baseIndex,
-                const range<dimensions> &subRange,
-                AllocatorT allocator = {});
-
-    tied_buffer<T, 1, AllocatorT)(context& syclContext,
-                InputIterator first, InputIterator last,
-                AllocatorT allocator = {});
-
-    tied_buffer(const tied_buffer<T, dim, AllocatorT> &rhs);
-
-    ~tied_buffer();
-
-    size_t get_count() const;
-
-    size_t get_size() const;
-
-    AllocatorT get_allocator() const;
-
-    context get_context() const;
-
-		template <access::mode mode, access::target target = access::global_buffer>
-			accessor<T, dimensions, mode, target> get_access(
-					handler &command_group_handler);
-		template <access::mode mode, access::target target = access::host_buffer>
-			accessor<T, dimensions, mode, target> get_access();
-		void set_final_data(weak_ptr_class<T> &finalData);
+  cl::sycl::context get_context();
 };
 ```
 
-Note that in this case we can offer a `get_context` method for the memory
-object, that returns the SYCL context that this `tied_buffer` is associated
-with.
-
-The interface of the SYCL buffer requires certain changes to 
-implement the inheritance: 
-The destructor of the buffer must be marked `virtual` and `override`.
-
-In case of an error, the `runtime_error` exception should be thrown.
+In case of an error, such as a tied buffer being used on the wrong
+context, the `runtime_error` exception should be thrown.
 
 ## Shared Virtual Memory support
 
@@ -113,8 +61,9 @@ has happened, and may expect the data on the SVM pointer to be valid.
 When passing the buffer across libraries, this situation may occur
 even without the user knowledge.
 
-By enabling the usage of the `svm_allocator` only with the `tied_buffer`
-type, we avoid accidental invalidation of SVM pointers by presenting
+By enabling the usage of the `svm_allocator` only in buffers with
+the  `context_bound` property, 
+we avoid accidental invalidation of SVM pointers by presenting
 a clear differentiation between a buffer tied to a context
 and a buffer that can move across multiple ones.
 
@@ -149,7 +98,8 @@ std::experimental::for_each(sycl_named_policy<example>(otherQueue),
  * on the context where the operation will be
  * performed.
  */
-tied_buffer<float, 1> tmp{deviceContext, myRange};
+buffer<float, 1> tmp{deviceContext, myRange, 
+                     property::buffer::context_bound(deviceContext)};
 
 bool firstIter = true;
 
@@ -184,16 +134,13 @@ do {
 
 An implementation may decide to not take advantage of this hint and 
 simply construct a normal buffer object underneath.
-However, if the tied buffer is used on an invalid context, this must
+However, if the bound buffer is used on an invalid context, this must
 raise an error.
 
 ## Alternative implementations
 
-Alternatively to a derived class from the buffer, we could explore
-other options for the interface, such as a different allocator type
-or a template specialization for the buffer constructor.
-However, these other alternative interface changes have larger impact
-on the specification, so they are left from this proposal at this point.
+The original approach was to use a derived class, but has now
+been updated to use the new properties mechanism.
 
 ## References
 
