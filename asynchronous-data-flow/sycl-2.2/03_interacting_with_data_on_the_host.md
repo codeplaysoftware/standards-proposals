@@ -102,7 +102,7 @@ without blocking the execution.
     auto cgH = [=] (handler& h) {
       auto accA = bufA.get_access<access::mode::read>(h);
       h.parallel_for<class kernel>(range, SomeKernel(accA));
-      h.update_from_device(hostPtr, accA);
+      h.copy(hostPtr, accA);
     };
     qA.submit(cgH);
 ```
@@ -115,8 +115,26 @@ Additionally, users may want to manually update the device data with host data.
 ```cpp
 auto cgH = [=] (handler& h) {
   auto accA = bufA.get_access<access::mode::read_write>(h);
-  h.update_to_device(accA, hostPtr);
+  h.copy(accA, hostPtr);
   h.parallel_for<class kernel>(range, SomeKernel(accA));
+};
+qA.submit(cgH);
+```
+
+### Updating data directly on the device
+
+In the current SYCL specification there is no functionality to copy the 
+contents of one SYCL buffer to another.
+Using the copy method, the user can specify also two accessors as 
+origin and destination, thus enabling the runtime to perform the copy 
+in the most efficient way giving the current location of the data
+in the system.
+
+```cpp
+auto cgH = [=] (handler& h) {
+  auto accA = bufA.get_access<access::mode::read_write>(h);
+  auto accB = bufB.get_access<access::mode::read_write>(h);
+  h.copy(accB, accA);
 };
 qA.submit(cgH);
 ```
@@ -124,15 +142,15 @@ qA.submit(cgH);
 #### Access restrictions
 
 The following restrictions apply to access mode and target of the accessor
-provided to `update_from_device` and `update_to_device`.
+provided to `copy`.
 
-Because a call to `update_from_device` triggers a read from the device data, the
+When a call to `copy` triggers a read from the device data, the
 only valid accessor modes are the following:
 * `access::mode::read`
 * `access::mode::read_write`
 * `access::mode::discard_read_write`
 
-Similarly, because a call to `update_to_device` triggers a write to the device
+Similarly, when a call to `copy` triggers a write to the device
 data, the only valid accessor modes are the following:
 * `access::mode::write`
 * `access::mode::read_write`
@@ -143,9 +161,6 @@ data, the only valid accessor modes are the following:
 
 | Method | Description |
 |--------|-------------|
-| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_from_device(accessor<T, dims, accessMode, accessTarget> acc)`  | Updates the pointer associated with the buffer or image on the host. |
-| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_to_device(accessor<T, dims, accessMode, accessTarget> acc)`  | Updates the data in accessor `acc` with the data associated with it on the host. |
-| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_from_device(shared_ptr<T> hostPtr, accessor<T, dims, accessMode, accessTarget> acc)`  | Update the contents of the host pointer with the data in accessor `acc`. `hostPtr` must have enough space allocated to hold the data. |
-| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void update_to_device(accessor<T, dims, accessMode, accessTarget> acc, shared_ptr<T> hostPtr)` | Update the the data in accessor `acc` with the contents of the host pointer. `hostPtr` must have enough space allocated to hold the data. |
-| `template <typename OutputIterator, typename T, int dims, access::mode accessMode, access::target accessTarget> void update_from_device(OutputIterator ot, accessor<T, dims, accessMode, accessTarget> acc)` | Write the contents of the memory pointed to by `acc` into the output iterator `ot`.  |
-| `template <typename T, int dims, access::mode accessMode, access::target accessTarget, typename InputIterator> void update_to_device(accessor<T, dims, accessMode, accessTarget> acc, InputIterator it)` | Write the contents of the input iterator `it` into the memory pointed to by `acc`.  |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void copy(shared_ptr<T> hostPtr, accessor<T, dims, accessMode, accessTarget> acc)`  | Update the contents of the host pointer with the data in accessor `acc`. `hostPtr` must have enough space allocated to hold the data. |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void copy(accessor<T, dims, accessMode, accessTarget> acc, shared_ptr<T> hostPtr)` | Update the the data in accessor `acc` with the contents of the host pointer. `hostPtr` must have enough space allocated to hold the data. |
+| `template <typename AccessorD, typename AccessorO> void copy(AccessorD acc, AccessorO acc)` | Update the the data in accessor `accD` with the contents of the buffer pointed by `accO` |
