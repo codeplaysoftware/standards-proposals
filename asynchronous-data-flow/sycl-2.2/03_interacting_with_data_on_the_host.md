@@ -139,6 +139,25 @@ auto cgH = [=] (handler& h) {
 qA.submit(cgH);
 ```
 
+### Filling data on the device
+
+A special case of updating the data directly on the device is when
+a certain pattern is to be replicated across a range of values in
+the accessor. 
+In C++, this is implemented via the std::fill function in the 
+algorithm headers.
+
+The example shows how to fill buffer A contents with an scalar.
+Note that at least write access is required.
+
+```cpp
+auto cgH = [=] (handler& h) {
+  auto accA = bufA.get_access<access::mode::write>(h);
+  h.fill(accB, 10);
+};
+qA.submit(cgH);
+```
+
 #### Access restrictions
 
 The following restrictions apply to access mode and target of the accessor
@@ -164,3 +183,4 @@ data, the only valid accessor modes are the following:
 | `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void copy(shared_ptr<T> hostPtr, accessor<T, dims, accessMode, accessTarget> acc)`  | Update the contents of the host pointer with the data in accessor `acc`. `hostPtr` must have enough space allocated to hold the data. |
 | `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void copy(accessor<T, dims, accessMode, accessTarget> acc, shared_ptr<T> hostPtr)` | Update the the data in accessor `acc` with the contents of the host pointer. `hostPtr` must have enough space allocated to hold the data. |
 | `template <typename AccessorD, typename AccessorO> void copy(AccessorD acc, AccessorO acc)` | Update the the data in accessor `accD` with the contents of the buffer pointed by `accO` |
+| `template <typename AccessorD, typename T> void fill(AccessorD acc, T val)` | Special case of copy from host to device where the origin is a scalar value that will be replicated across the range of the accessor.  |
