@@ -19,5 +19,5 @@ This proposal aims to define an interface for specialising the buffer class whil
 
 | Version | Last Modified | Document |
 |---------|----- | ---------|
-| Buffer tied to a Context | 9 Jun 2017 | [Link](sycl-2.2/tied-buffer.md) |
-| Buffer Tags | 9 Jun 2017 | [Link](sycl-2.2/buffer-tags.md) |
+| Buffer tied to a Context | 4 July 2017 | [Link](sycl-2.2/tied-buffer.md) |
+| Buffer Tags | 9 June 2017 | [Link](sycl-2.2/buffer-tags.md) |
