@@ -75,7 +75,7 @@ namespace buffer {
   struct use_host_ptr;
   struct cl_interop;
   struct svm;  // SYCL 2.2 Only
-  struct mutex { mutex(mutex_class &mutexRef); };
+  struct use_mutex { use_mutex(mutex_class &mutexRef); };
 }  // namespace buffer
 }  // namespace property;
 ```
@@ -133,12 +133,12 @@ struct cl_interop {
 };
 ```
 
-* *mutex*: Buffer constructed with a mutex for sharing the host pointer with the SYCL runtime.
+* *use_mutex*: Buffer constructed with a mutex for sharing the host pointer with the SYCL runtime.
 
 ```cpp
-struct mutex {
+struct use_mutex {
   // Construct a property for the mutex
-  mutex(cl::sycl::mutex_class &mutexRef);
+  use_mutex(cl::sycl::mutex_class &mutexRef);
 };
 ```
 
