@@ -9,7 +9,7 @@
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 | Requirements | CP001 |
-| Contributors | Gordon Brown <gordon@codeplay.com>, Victor Lomuller <victor@codeplay.com>, Mehdi Goli <mehdi.goli@codeplay.com>, Peter Zuzek <peter@codeplay.com>, Luke Iwanski <luke@codeplay.com> |
+| Contributors | Gordon Brown <gordon@codeplay.com>, Victor Lomuller <victor@codeplay.com>, Mehdi Goli <mehdi.goli@codeplay.com>, Peter Zuzek <peter@codeplay.com>, Luke Iwanski <luke@codeplay.com>, Michael Haidl <michael.haidl@uni-muenster.de> |
 
 ## Overview
 
@@ -172,7 +172,10 @@ except for the aforementioned modifications.
 
 ### When `is_placeholder` returns true
 
-The accessor API features constructors that don't take the handler parameter.
+The accessor API features constructors that don't take the handler parameter
+and/or memory object as a constructor. Accessors can then be default
+constructed, and the memory object can be assigned later when registering
+the accessor in the command group. 
 
 In addition, a new method to obtain a normal accessor from the placeholder
 accessor is provided.
@@ -191,6 +194,12 @@ The handler gains a new method,
 `handler::require(accessor<T, dim, mode, target, acess::placeholder::true_t>)`
 that registers the requirements of the placeholder accessor on the given
 command group.
+
+Another method, that allows specifying the memory object the placeholder
+accessor will be associated is also provided:
+
+`handler::require(buffer<T, dim> b,
+    accessor<T, dim, mode, target, acess::placeholder::true_t>)`
 
 
 [1]: https://github.com/codeplaysoftware/sycl-blas "SYCL-BLAS"
