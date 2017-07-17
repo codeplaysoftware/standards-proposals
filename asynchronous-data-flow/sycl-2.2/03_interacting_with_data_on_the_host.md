@@ -102,7 +102,7 @@ without blocking the execution.
     auto cgH = [=] (handler& h) {
       auto accA = bufA.get_access<access::mode::read>(h);
       h.parallel_for<class kernel>(range, SomeKernel(accA));
-      h.copy(hostPtr, accA);
+      h.copy(accA, hostPtr);
     };
     qA.submit(cgH);
 ```
@@ -115,7 +115,7 @@ Additionally, users may want to manually update the device data with host data.
 ```cpp
 auto cgH = [=] (handler& h) {
   auto accA = bufA.get_access<access::mode::read_write>(h);
-  h.copy(accA, hostPtr);
+  h.copy(hostPtr, accA);
   h.parallel_for<class kernel>(range, SomeKernel(accA));
 };
 qA.submit(cgH);
@@ -134,7 +134,7 @@ in the system.
 auto cgH = [=] (handler& h) {
   auto accA = bufA.get_access<access::mode::read_write>(h);
   auto accB = bufB.get_access<access::mode::read_write>(h);
-  h.copy(accB, accA);
+  h.copy(accA, accB);
 };
 qA.submit(cgH);
 ```
@@ -180,7 +180,7 @@ data, the only valid accessor modes are the following:
 
 | Method | Description |
 |--------|-------------|
-| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void copy(shared_ptr<T> hostPtr, accessor<T, dims, accessMode, accessTarget> acc)`  | Update the contents of the host pointer with the data in accessor `acc`. `hostPtr` must have enough space allocated to hold the data. |
-| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void copy(accessor<T, dims, accessMode, accessTarget> acc, shared_ptr<T> hostPtr)` | Update the the data in accessor `acc` with the contents of the host pointer. `hostPtr` must have enough space allocated to hold the data. |
-| `template <typename AccessorD, typename AccessorO> void copy(AccessorD acc, AccessorO acc)` | Update the the data in accessor `accD` with the contents of the buffer pointed by `accO` |
-| `template <typename AccessorD, typename T> void fill(AccessorD acc, T val)` | Special case of copy from host to device where the origin is a scalar value that will be replicated across the range of the accessor.  |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void copy(accessor<T, dims, accessMode, accessTarget> acc, shared_ptr<T> hostPtr)`  | Update the contents of the host pointer with the data in accessor `acc`. `hostPtr` must have enough space allocated to hold the data. The accessor `T` can also be `const` qualified and the `hostPtr` can also be of type `shared_ptr<void>`. |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void copy(shared_ptr<T> hostPtr, accessor<T, dims, accessMode, accessTarget> acc)` | Update the the data in accessor `acc` with the contents of the host pointer. `hostPtr` must have enough space allocated to hold the data. The underlying type of the `hostPtr` shared pointer can also be `const` qualified or be `void`. |
+| `template <typename AccessorO, typename AccessorD> void copy(AccessorO accO, AccessorD accD)` | Update the data in accessor `accD` with the contents of the buffer pointed by `accO`. The underlying type of `accO` can also be `const` qualified. |
+| `template <typename T, int dims, access::mode accessMode, access::target accessTarget> void fill(accessor<T, dims, accessMode, accessTarget> acc, T val)` | Special case of copy from host to device where the origin is a scalar value that will be replicated across the range of the accessor. The type of `val` can also be `const` qualified. |
