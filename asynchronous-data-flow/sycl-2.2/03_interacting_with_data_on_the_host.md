@@ -153,7 +153,7 @@ Note that at least write access is required.
 ```cpp
 auto cgH = [=] (handler& h) {
   auto accA = bufA.get_access<access::mode::write>(h);
-  h.fill(accB, 10);
+  h.fill(accA, 10);
 };
 qA.submit(cgH);
 ```
