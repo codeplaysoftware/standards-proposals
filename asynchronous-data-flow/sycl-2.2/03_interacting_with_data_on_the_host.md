@@ -158,6 +158,10 @@ auto cgH = [=] (handler& h) {
 qA.submit(cgH);
 ```
 
+Because of device restrictions on the size of the pattern, the size in bytes of
+the data type used for the pattern must be one of 1, 2, 4, 8, 16, 32, 64,
+or 128.
+
 #### Access restrictions
 
 The following restrictions apply to access mode and target of the accessor
