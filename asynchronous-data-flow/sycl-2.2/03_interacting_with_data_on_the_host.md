@@ -151,9 +151,10 @@ The example shows how to fill buffer A contents with an scalar.
 Note that at least write access is required.
 
 ```cpp
+int pattern = 10;
 auto cgH = [=] (handler& h) {
   auto accA = bufA.get_access<access::mode::write>(h);
-  h.fill(accA, 10);
+  h.fill(accA, pattern);
 };
 qA.submit(cgH);
 ```
