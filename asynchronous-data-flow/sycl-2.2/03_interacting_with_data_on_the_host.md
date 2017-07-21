@@ -151,12 +151,17 @@ The example shows how to fill buffer A contents with an scalar.
 Note that at least write access is required.
 
 ```cpp
+int pattern = 10;
 auto cgH = [=] (handler& h) {
   auto accA = bufA.get_access<access::mode::write>(h);
-  h.fill(accB, 10);
+  h.fill(accA, pattern);
 };
 qA.submit(cgH);
 ```
+
+Because of restrictions in OpenCL implementations on the size of the pattern,
+the size in bytes of the data type used for the pattern must be one of 1, 2, 4,
+8, 16, 32, 64, or 128.
 
 #### Access restrictions
 
