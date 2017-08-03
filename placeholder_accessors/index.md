@@ -175,7 +175,7 @@ except for the aforementioned modifications.
 The accessor API features constructors that don't take the handler parameter
 and/or memory object as a constructor. Accessors can then be default
 constructed, and the memory object can be assigned later when registering
-the accessor in the command group. 
+the accessor in the command group.
 
 In addition, a new method to obtain a normal accessor from the placeholder
 accessor is provided.
@@ -199,8 +199,18 @@ Another method, that allows specifying the memory object the placeholder
 accessor will be associated is also provided:
 
 `handler::require(buffer<T, dim> b,
-    accessor<T, dim, mode, target, acess::placeholder::true_t>)`
+    accessor<T, dim, mode, target, access::placeholder::true_t>)`
 
+### Placeholder `accessor` without a buffer
+
+If a placeholder accessor which was not constructed with a buffer is not tied
+to a buffer within a command group, then an exception is thrown. An accessor
+can be checked for the existence of an associated a buffer using `has_buffer()`.
+
+|Member function        |Description                                              |
+|-----------------------|---------------------------------------------------------|
+|bool has_buffer() const|Returns true if the accessor is associated with a buffer,|
+|                       |and false otherwise.                                     |
 
 [1]: https://github.com/codeplaysoftware/sycl-blas "SYCL-BLAS"
 [2]: https://github.com/lukeiwanski/tensorflow "TensorFlow/Eigen"
