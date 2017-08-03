@@ -207,10 +207,10 @@ If a placeholder accessor which was not constructed with a buffer is not tied
 to a buffer within a command group, then an exception is thrown. An accessor
 can be checked for a buffer using `has_buffer()`.
 
-|Member function  |Description                                              |
-|-----------------|---------------------------------------------------------|
-|bool has_buffer()|Returns true if the accessor is associated with a buffer,|
-|                 |and false otherwise.                                     |
+|Member function        |Description                                              |
+|-----------------------|---------------------------------------------------------|
+|bool has_buffer() const|Returns true if the accessor is associated with a buffer,|
+|                       |and false otherwise.                                     |
 
 [1]: https://github.com/codeplaysoftware/sycl-blas "SYCL-BLAS"
 [2]: https://github.com/lukeiwanski/tensorflow "TensorFlow/Eigen"
