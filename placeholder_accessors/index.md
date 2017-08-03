@@ -205,7 +205,7 @@ accessor will be associated is also provided:
 
 If a placeholder accessor which was not constructed with a buffer is not tied
 to a buffer within a command group, then an exception is thrown. An accessor
-can be checked for a buffer using `has_buffer()`.
+can be checked for the existence of an associated a buffer using `has_buffer()`.
 
 |Member function        |Description                                              |
 |-----------------------|---------------------------------------------------------|
