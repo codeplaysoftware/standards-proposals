@@ -201,11 +201,11 @@ accessor will be associated is also provided:
 `handler::require(buffer<T, dim> b,
     accessor<T, dim, mode, target, access::placeholder::true_t>)`
 
-### `accessor`s without buffers
+### Placeholder `accessor` without a buffer
 
-If a placeholder accessor is not tied to a buffer within a command group, then
-an exception is thrown. An accessor can be checked for a buffer using
-`has_buffer()`.
+If a placeholder accessor which was not constructed with a buffer is not tied
+to a buffer within a command group, then an exception is thrown. An accessor
+can be checked for a buffer using `has_buffer()`.
 
 |Member function  |Description                                              |
 |-----------------|---------------------------------------------------------|
