@@ -48,4 +48,4 @@ Each proposal in the table below will be tagged with one of the following states
 | CP007 | [Vector Load and Store Operations](vector-operations/sycl-2.2/vector-loads-and-stores.md) | SYCL 2.2 | 29 March 2017 | 30 March 2017 | _Published_ |
 | CP008 | [Buffer tied to a context](tied-buffer/index.md) | SYCL 2.2 | 17 March 2017 | 4 July 2017 | _Work in Progress_ |
 | CP009 | [Async Work Group Copy & Prefetch Builtins](async-work-group-copy/index.md) | SYCL 2.2 | 07 August 2017 | 07 August 2017 | _Published_ |
-| CP011 | [Mem Fence Builtins](mem-fence/index.md) | SYCL 2.2 | 11 August 2017 | 9 September 2017 | __Published_ |
+| CP011 | [Mem Fence Builtins](mem-fence/index.md) | SYCL 2.2 | 11 August 2017 | 9 September 2017 | _Published_ |
