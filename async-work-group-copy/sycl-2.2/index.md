@@ -1,11 +1,11 @@
+# Async Work Group Copy & Prefetch Builtins
+
 **Document number: C009**
 **Date: 2017-07-19**
 **Project: SYCL 2.2 Specification**
 **Authors: Gordon Brown, Ruyman Reyes**
 **Emails: gordon@codeplay.com, ruyman@codeplay.com**
 **Reply to: gordon@codeplay.com, ruyman@codeplay.com**
-
-# Async Work Group Copy & Prefetch Builtins
 
 ## Motivation
 
@@ -39,7 +39,7 @@ queue.submit([&](handler &cgh){
       // enqueue an asynchronous copy from global to local memory
       auto copyToLocal = async_work_group_copy(localPtr, globalPtr, WORK_ITEMS_PER_GROUP);
 
-      // wait for copy to local memeory to complete
+      // wait for copy to local memory to complete
       copyToLocal.wait();
 
       // perform computation on local memory
