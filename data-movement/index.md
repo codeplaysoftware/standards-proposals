@@ -7,7 +7,7 @@
 | Target | ISO C++ SG1 SG14 |
 | Initial creation | 30 May 2017 |
 | Last update | 28 August 2017 |
-| Reply-to | Michael Wong <gordon@codeplay.com> |
+| Reply-to | Michael Wong <michael.wong@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 | Contributors | Gordon Brown <michael.wong@codeplay.com>, Michael Wong <michael.wong@codeplay.com>, Hartmut Kaiser <hartmut.kaiser@gmail.com > |
 
