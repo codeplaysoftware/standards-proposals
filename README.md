@@ -40,7 +40,7 @@ Each proposal in the table below will be tagged with one of the following states
 
 | ID | Name                   | Target | Initial creation | Latest update | Status |
 | --- | ---------------------- | ------ | ---------------- | ------------- | ------ |
-| CP001 | [Asynchronous Data Flow](asynchronous-data-flow/index.md) | SYCL 2.2 |   20 July 2016   | 11 Jan 2017   | _Work in Progress_  |
+| CP001 | [Asynchronous Data Flow](asynchronous-data-flow/index.md) | SYCL 2.2 |   20 July 2016   | 11 Jan 2017   | _Work in Progress_ |
 | CP003 | [Implicit Accessor Conversions](implicit-accessor-conversions/sycl-2.2/implicit-accessor-conversions.md) | SYCL 2.2 | 28 March 2017 | 30 March 2017 | _Work in Progress_ |
 | CP004 | [Placeholder Accessors](placeholder_accessors.md) | SYCL 2.2 | 20 July 2016 | 12 Jun 2017 | _Work in Progress_ |
 | CP005 | [Asynchronous managed pointer for Heterogeneous computing](managed-pointer/index.md) | ISO C++ SG1, SG14 | 22 July 2016 | 6 Feb 2017 | _Published_ |
@@ -49,3 +49,5 @@ Each proposal in the table below will be tagged with one of the following states
 | CP008 | [Buffer tied to a context](tied-buffer/index.md) | SYCL 2.2 | 17 March 2017 | 4 July 2017 | _Work in Progress_ |
 | CP009 | [Async Work Group Copy & Prefetch Builtins](async-work-group-copy/index.md) | SYCL 2.2 | 07 August 2017 | 07 August 2017 | _Published_ |
 | CP011 | [Mem Fence Builtins](mem-fence/index.md) | SYCL 2.2 | 11 August 2017 | 9 September 2017 | _Published_ |
+| CP012 | [Data Movement in C++](data-movement/index.md) | ISO C++ SG1, SG14 | 30 May 2017 | 28 August 2017 | _Work in Progress_ |
+| CP013 | [Supporting Heterogeneous & Distributed Computing Through Affinity](affinity/index.md) | ISO C++ SG1, SG14 | 15 November 2017 | 27 Novemeber 2017 | _Work in Progress_ |
