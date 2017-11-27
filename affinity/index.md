@@ -8,7 +8,7 @@
 | Initial creation | 15 November 2017 |
 | Last update | 27 Novemeber 2017 |
 | Reply-to | Michael Wong <gordon@codeplay.com> |
-| Original author | Gordon Brown <michael.wong@codeplay.com> |
+| Original author | Gordon Brown <gordon@codeplay.com> |
 | Contributors | Ruyman Reyes <ruyman@codeplay.com>, Michael Wong <michael.wong@codeplay.com>, H. Carter Edwards <hcedwar@sandia.gov>, Thomas Rodgers <rodgert@twrodgers.com> |
 
 ## Overview
