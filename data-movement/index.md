@@ -9,7 +9,7 @@
 | Last update | 28 August 2017 |
 | Reply-to | Michael Wong <michael.wong@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
-| Contributors | Gordon Brown <michael.wong@codeplay.com>, Michael Wong <michael.wong@codeplay.com>, Hartmut Kaiser <hartmut.kaiser@gmail.com > |
+| Contributors | Gordon Brown <michael.wong@codeplay.com>, Michael Wong <michael.wong@codeplay.com>, Hartmut Kaiser <hartmut.kaiser@gmail.com> |
 
 ## Overview
 
