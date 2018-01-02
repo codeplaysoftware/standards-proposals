@@ -4,8 +4,8 @@
 |-------------|--------|
 | Name | Buffer Properties |
 | Date of Creation | 14 March 2017 |
-| Target | SYCL 2.2 |
-| Current Status | _Work In Progress_ |
+| Target | SYCL 1.2.1 |
+| Current Status | _Accepted_ |
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 | Contributors | Gordon Brown <gordon@codeplay.com>, Mehdi Goli <mehdi.goli@codeplay.com> |
@@ -16,7 +16,7 @@ This proposal aims to define an interface for specialising the construction of t
 Each tag represent a different property of a buffer.
 By defining properties for buffers and allowing them to be expressed independently from the
 buffer API we simplify the SYCL specification and we enable future capabilities to be added
-seamlessly. 
+seamlessly.
 
 ## Revisions
 
@@ -29,7 +29,7 @@ allowing querying for specific values of a property.
 
 This proposal aims to provide a solution to two problems.
 
-Firstly many use cases for specialisations of the buffer have emerged, each providing alternate semantics to the traditional buffer. 
+Firstly many use cases for specialisations of the buffer have emerged, each providing alternate semantics to the traditional buffer.
 Various ideas for buffers tied to context, for buffers that don't allocate
 additional memory or interoperability variants have arised.
 

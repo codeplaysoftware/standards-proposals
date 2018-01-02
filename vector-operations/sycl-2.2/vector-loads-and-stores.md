@@ -1,9 +1,14 @@
-**Document number: **
-**Date: 2017-03-30**
-**Project: SYCL 2.2 Specification**
-**Authors: Gordon Brown, Ruyman Reyes**
-**Emails: gordon@codeplay.com, ruyman@codeplay.com**
-**Reply to: gordon@codeplay.com, ruyman@codeplay.com**
+| Proposal ID | CP007 |
+|-------------|--------|
+| Name | Buffer Tags |
+| Previous Names | Buffer tied to a Context |
+| Date of Creation | 30 March 2017 |
+| Target | SYCL 1.2.1 |
+| Current Status | _Accepted with changes_ |
+| Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
+| Original author | Ruyman Reyes <ruyman@codeplay.com> |
+| Contributors | Ruyman Reyes <ruyman@codeplay.com>, Gordon Brown <gordon@codeplay.com> |
+
 
 # Vector Load and Store Operations
 
