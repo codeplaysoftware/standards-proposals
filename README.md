@@ -48,7 +48,7 @@ Each proposal in the table below will be tagged with one of the following states
 | CP006 | [Maybe unused attribute in decomposition declarations](defects-2017-02/cpp-17/maybe-unused-decomposition-decls.md) | ISO C++ EWG | 22 February 2017 | 22 February 2017 | _Published_ |
 | CP007 | [Vector Load and Store Operations](vector-operations/sycl-2.2/vector-loads-and-stores.md) | SYCL 1.2.1 | 29 March 2017 | 30 March 2017 | _Accepted with changes_ |
 | CP008 | [Buffer tied to a context](tied-buffer/index.md) | SYCL 1.2.1 | 17 March 2017 | 4 July 2017 | _Accepted_ |
-| CP009 | [Async Work Group Copy & Prefetch Builtins](async-work-group-copy/index.md) | SYCL 1.2.1 | 07 August 2017 | 07 August 2017 | _Published_ |
+| CP009 | [Async Work Group Copy & Prefetch Builtins](async-work-group-copy/index.md) | SYCL 1.2.1 | 07 August 2017 | 07 August 2017 | _Accepted with changes_ |
 | CP011 | [Mem Fence Builtins](mem-fence/index.md) | SYCL 1.2.1 | 11 August 2017 | 9 September 2017 | _Accepted_ |
 | CP012 | [Data Movement in C++](data-movement/index.md) | ISO C++ SG1, SG14 | 30 May 2017 | 28 August 2017 | _Work in Progress_ |
 | CP013 | [Supporting Heterogeneous & Distributed Computing Through Affinity](affinity/index.md) | ISO C++ SG1, SG14 | 15 November 2017 | 27 Novemeber 2017 | _Work in Progress_ |
