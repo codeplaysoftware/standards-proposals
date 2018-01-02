@@ -4,8 +4,8 @@
 |-------------|--------|
 | Name | Buffer Properties |
 | Date of Creation | 14 March 2017 |
-| Target | SYCL 2.2 |
-| Current Status | _Work In Progress_ |
+| Target | SYCL 1.2.1 |
+| Current Status | *Accepted* |
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 | Contributors | Gordon Brown <gordon@codeplay.com>, Mehdi Goli <mehdi.goli@codeplay.com> |

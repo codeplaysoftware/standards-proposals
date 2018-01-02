@@ -4,8 +4,8 @@
 |-------------|--------|
 | Name | Placeholder Accessors  |
 | Date of Creation | 20 July 2016 |
-| Target | SYCL 2.2 |
-| Current Status | _Work In Progress_ |
+| Target | SYCL 1.2.1 |
+| Current Status | _Accepted_ |
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 | Requirements | CP001 |

@@ -1,9 +1,12 @@
-**Document number: **
-**Date: 2017-03-30**
-**Project: SYCL 2.2 Specification**
-**Authors: Gordon Brown, Ruyman Reyes**
-**Emails: gordon@codeplay.com, ruyman@codeplay.com**
-**Reply to: gordon@codeplay.com, ruyman@codeplay.com**
+| Proposal ID | CP003 |
+|-------------|--------|
+| Name | Buffer Tags |
+| Date of Creation | 17 March 2017 |
+| Target | SYCL 1.2.1 |
+| Current Status | *Accepted with changes* |
+| Reply-to | Gordon Brown <gordon@codeplay.com> |
+| Original author | Gordon Brown <gordon@codeplay.com> |
+| Contributors | Ruyman Reyes <ruyman@codeplay.com>, Gordon Brown <gordon@codeplay.com> |
 
 # Implicit Accessor Conversions
 
