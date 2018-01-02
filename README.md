@@ -35,13 +35,13 @@ Each proposal in the table below will be tagged with one of the following states
 * _Draft_ : A draft of the proposal is ready, and no major changes are expected. This status normally indicates that the proposal is ready for feedback from the general public.
 * _Final Draft_ : The proposal is a draft submitted to the relevant standards body, and only minor changes are expected.
 * _Published_ : The proposal is finished and no more work is expected.
-* _Accepted_ or _Accepted with changes_ : Accepted on the standard version indicated as target. Refer to that standard document from now on for the latest status of the feature.
+* _Accepted_, _Accepted with changes_ or _Partially accepted_ : Accepted on the standard version indicated as target. Refer to that standard document from now on for the latest status of the feature.
 
 ## Current list of proposals and status
 
 | ID | Name                   | Target | Initial creation | Latest update | Status |
 | --- | ---------------------- | ------ | ---------------- | ------------- | ------ |
-| CP001 | [Asynchronous Data Flow](asynchronous-data-flow/index.md) | SYCL 1.2.1 |   20 July 2016   | 11 Jan 2017   | _Partially Accepted_ |
+| CP001 | [Asynchronous Data Flow](asynchronous-data-flow/index.md) | SYCL 1.2.1 |   20 July 2016   | 11 Jan 2017   | _Partially accepted_ |
 | CP003 | [Implicit Accessor Conversions](implicit-accessor-conversions/sycl-2.2/implicit-accessor-conversions.md) | SYCL 1.2.1 | 28 March 2017 | 30 March 2017 | _Accepted with changes_ |
 | CP004 | [Placeholder Accessors](placeholder_accessors.md) | SYCL 1.2.1 | 20 July 2016 | 12 Jun 2017 | _Accepted with changes_ |
 | CP005 | [Asynchronous managed pointer for Heterogeneous computing](managed-pointer/index.md) | ISO C++ SG1, SG14 | 22 July 2016 | 6 Feb 2017 | _Published_ |

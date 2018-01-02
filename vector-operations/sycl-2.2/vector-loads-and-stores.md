@@ -4,7 +4,7 @@
 | Previous Names | Buffer tied to a Context |
 | Date of Creation | 30 March 2017 |
 | Target | SYCL 1.2.1 |
-| Current Status | *Accepted with changes* |
+| Current Status | _Accepted with changes_ |
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 | Contributors | Ruyman Reyes <ruyman@codeplay.com>, Gordon Brown <gordon@codeplay.com> |
