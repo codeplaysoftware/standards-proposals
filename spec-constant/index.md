@@ -19,7 +19,7 @@ This is especially true for highly tuned software that requires information abou
 Since OpenCL C kernels are being fully compiled at runtime, those constants are usually expressed as macro and the value is passed to online compiler when the kernel is being compiled.
 However, SYCL being statically compiled, it is not possible to use this approach. Template based techniques might not be possible or come at the price of code size explosion.
 
-SPIR-V, the standard intermediate representation for shader and compute kernels, introduced "specialization constants" as a way to replace this macro usage in statically compiled kernels.
+SPIR-V, the standard intermediate representation for shader and compute kernels, introduced *specialization constants* as a way to replace this macro usage in statically compiled kernels.
 Specialization constants in SPIR-V are treated as constants whose value is not known at the time of the SPIR-V module generation.
 Providing these constants before building the module for the actual target provides the compiler with the opportunity to further optimize the program.
 
@@ -40,13 +40,19 @@ class runtime_const;
 // Fetch a value at runtime.
 float get_value();
 
+// Declare a specialization constant id.
+// The variable `runtime_const` will be used as the id.
+cl::sycl::experimental::spec_id<float> runtime_const(42.f);
+
 int main() {
  cl::sycl::queue queue;
  cl::sycl::program program(queue.get_context());
 
- // Create a specialization constant.
- cl::sycl::experimental::spec_constant<float, runtime_const> my_constant =
-     program.set_spec_constant<runtime_const>(get_value());
+ // Set the value of the specialization constant.
+ program.set_spec_constant<float, &runtime_const>(get_value());
+ // Build the program, the value set by set_spec_constant
+ // will be used as a constant by the underlying JIT
+ // if it has native support for specialization constant.
  program.build_with_kernel_type<specialized_kernel>();
 
  std::vector<float> vec(1);
@@ -55,19 +61,25 @@ int main() {
 
    queue.submit([&](cl::sycl::handler& cgh) {
      auto acc = cgh.get_access<cl::sycl::access::mode::write>(buffer);
+     // Retrieve a placeholder object representing the spec constant.
+     auto my_constant = cgh.get_spec_constant<float, &runtime_const>();
+
      cgh.single_task<specialized_kernel>(
          program.get_kernel<specialized_kernel>(),
-         [=]() { acc[0] = my_constant.get(); });
+         [=]() {
+           acc[0] = my_constant.get(); // This should become a constant.
+          });
    });
  }
 }
 ```
-In this example, the call to `set_spec_constant` binds the value returned by the call to `get_value` to the SYCL `program`.
+
+
+In this example, the construction of `runtime_const` creates an specialization constant id, the initializer is taken as default value for the spec constant. The call to `set_spec_constant` binds the value returned by the call to `get_value` to the SYCL `program`.
 At static compilation time, the value is unknown to the SYCL device compiler, thus cannot be used by the optimizations.
 At runtime, `get_value` is evaluated and bond to the SYCL `program`, giving the opportunity for the underlying OpenCL runtime to use it during the kernel build.
-The function `set_spec_constant` returns a `spec_constant` object allowing the user to use the value inside the kernel.
-After all runtime values are bounded to the program, the program is built.
 
+Upon submission of the kernel `specialized_kernel`, the call to `get_spec_constant` return a spec_constant object. This object is a placeholder that represent the specialization constant inside the kernel.
 The specialization constant `my_constant` is later used inside `specialized_kernel` and the expression `my_constant.get()` returns the value returned by the call to `get_value()`.
 If the target natively supports specialization constant, this value will be known by the underlying OpenCL consumer when it builds the kernel.
 
@@ -156,6 +168,9 @@ It can even have an adverse effect as the value will use a register and the comp
 
 Using specialization constants, the routine can be rewritten as:
 ```cpp
+cl::sycl::experimental::spec_id<std::size_t> block_size(1);
+
+
 template <typename T>
 void mat_multiply(cl::sycl::queue& q, T* MA, T* MB, T* MC, int matSize) {
   auto device = q.get_device();
@@ -164,12 +179,6 @@ void mat_multiply(cl::sycl::queue& q, T* MA, T* MB, T* MC, int matSize) {
       device.get_info<cl::sycl::info::device::max_work_group_size>();
   auto blockSizeCst = prevPowerOfTwo(std::sqrt(maxBlockSize));
   blockSizeCst = std::min(matSize, blockSize);
-
-  cl::sycl::program program(queue.get_context());
-
-  // Create a specialization constant to encapsulate blockSize.
-  auto blockSize = program.set_spec_constant<class block_size>(blockSizeCst);
-  program.build_with_kernel_type<class mxm_kernel<T>>();
 
   {
     range<1> dimensions(matSize * matSize);
@@ -181,17 +190,18 @@ void mat_multiply(cl::sycl::queue& q, T* MA, T* MB, T* MC, int matSize) {
       auto pA = bA.template get_access<access::mode::read>(cgh);
       auto pB = bB.template get_access<access::mode::read>(cgh);
       auto pC = bC.template get_access<access::mode::write>(cgh);
-      auto localRange = range<1>(blockSize * blockSize);
+      auto localRange = range<1>(blockSizeCst * blockSizeCst);
 
       accessor<T, 1, access::mode::read_write, access::target::local> pBA(
           localRange, cgh);
       accessor<T, 1, access::mode::read_write, access::target::local> pBB(
           localRange, cgh);
+      auto blockSize = cgh.set_spec_constant<std::size_t, block_size>(blockSizeCst);
 
       cgh.parallel_for<class mxm_kernel<T>>(
           program.get_kernel<class mxm_kernel<T>>(),
           nd_range<2>{range<2>(matSize, matSize),
-                      range<2>(blockSize, blockSize)},
+                      range<2>(blockSizeCst, blockSizeCst)},
           [=](nd_item<2> it) {
             // Current block
             int blockX = it.get_group(0);
@@ -238,7 +248,7 @@ void mat_multiply(cl::sycl::queue& q, T* MA, T* MB, T* MC, int matSize) {
   }
 }
 ```
-In this example, `blockSize` is now a specialization constant holding the value same value as before, meaning that the value is now injected inside the module, allow the OpenCL consumer to use the value in the optimizations.
+In this example, `blockSize` is now a specialization constant holding the value same value as before, meaning that the value is now injected inside the module, allow the OpenCL consumer to use the value in the optimizations (loop unrolling for instance).
 Note that the specialization constant ID is independent from the template parameter `T` from which the kernel depends on. This means that all kernel instances will share the same value.
 
 
@@ -255,13 +265,33 @@ namespace cl {
 namespace sycl {
 namespace experimental {
 
-template <typename T, typename ID = T>
+template <typename T>
+class spec_id {
+private:
+  // Implementation defined constructor.
+  spec_id(const spec_id&) = delete;
+  spec_id(spec_id&&) = delete;
+public:
+  using type = T;
+
+  // Argument `Args` are forwarded to the underlying T Ctor.
+  // This allow the user to setup a default value for the spec_id instance.
+  // The initialization of T must be evaluated at compile time to be valid.
+  template<class... Args >
+  explicit constexpr spec_id(Args&&...);
+};
+
+template <class T, spec_id<T>& s>
 class spec_constant {
 private:
   // Implementation defined constructor.
   spec_constant(/* Implementation defined */);
+  spec_constant(spec_constant&&) = delete;
+
 public:
-  spec_constant();
+  using type = T;
+
+  spec_constant(const spec_constant&) = default;
 
   T get() const; // explicit access.
   operator T() const;  // implicit conversion.
@@ -300,8 +330,15 @@ namespace sycl {
 class program {
 // ...
 public:
- template <typename ID, typename T>
- spec_constant<T, ID> set_spec_constant(T cst);
+
+ /**
+  * Returns true if the current program can support specialization constants natively.
+  *
+  */
+ bool native_spec_constant() const noexcept;
+
+ template <typename T, experimental::spec_id<T>&>
+ void set_spec_constant(T cst);
 // ...
 };
 
@@ -324,6 +361,46 @@ For a same kernel, it is valid to set different specialization constants to diff
 
 After the kernel is built, it is no longer possible to set new specialization constants.
 A `cl::sycl::experimental::spec_const_error` exception will be thrown if the user attempt change it after the kernel has been built.
+
+## Getting Specialization Constants via the command group handler
+
+The handler interface is extended to include a mechanism to get a specialization constant.
+
+```cpp
+namespace cl {
+namespace sycl {
+
+class handler {
+// ...
+public:
+ // Set a value for the specialization constant represented by `s`
+ // and return the associated spec_constant.
+ // Note, this call may require the underlying program to be rebuilt.
+ template <typename T, experimental::spec_id<T>& s>
+ spec_constant<T, s> set_spec_constant(T cst);
+
+ // Retrive a spec_constant object representing `s`
+ template <typename T, experimental::spec_id<T>& s>
+ spec_constant<T, s> get_spec_constant();
+
+// ...
+};
+
+}  // namespace sycl
+}  // namespace cl
+```
+
+The templated member function `get_spec_constant` takes a runtime value of type `T` that will be used to set the specialization constant named `ID`.
+Multiple specialization constants can be generated by calling `get_spec_constant` multiple times.
+
+It is invalid to query multiple times a specialization constant with a common `ID` for the same kernel.
+
+Upon invocation of a `single_task`/`parallel_for`/`parallel_for_work_group` construct, the runtime will build the appropriate kernel if it has never been built for the set of specialization constant passed to the kernel.
+The SYCL device compiler and runtime are responsible to make sure that it is valid to build the module in which the invoked kernel is defined using only the provided specialization constants.
+
+It is illegal to use this interface in conjunction with the `cl::sycl::program` interface.
+
+It must be noted that setting a specialization constant has an underlying cost and that changing a constant value will force the OpenCL runtime to build a new kernel.
 
 ## Build issue caused by Specialization Constants
 
