@@ -94,4 +94,33 @@ TODO(Peter): Handle multi_ptr<const void, Space>
 
 ## Conversion functions
 
-TODO(Peter)
+In addition to the conversion operators,
+we propose adding the following free functions to the `cl::sycl` namespace:
+
+```cpp
+namespace cl {
+namespace sycl {
+
+template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
+multi_ptr<ElementTypeU, Space>
+  static_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr);
+
+template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
+multi_ptr<ElementTypeU, Space>
+  dynamic_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr);
+
+template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
+multi_ptr<ElementTypeU, Space>
+  const_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr);
+
+template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
+multi_ptr<ElementTypeU, Space>
+  reinterpret_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr);
+
+} // namespace sycl
+} // namespace cl
+```
+
+TODO(Peter): Description
+
+TODO(Peter): Table
