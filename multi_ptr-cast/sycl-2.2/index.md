@@ -26,7 +26,8 @@ is to use both casts like so:
 ```cpp
 // Using global_ptr here to simplify the code
 // decltype(multiPtrA) == global_ptr<A>
-auto multiPtrB = static_cast<global_ptr<B>>(static_cast<global_ptr<void>>(multiPtrA));
+auto multiPtrB = static_cast<global_ptr<B>>(
+                  static_cast<global_ptr<void>>(multiPtrA));
 ```
 
 This is problematic on a few levels:
@@ -62,9 +63,9 @@ class multi_ptr {
 
   ...
 
-  // Explicit conversion to `multi_ptr<U, Space>`
-  template <typename U>
-  explicit operator multi_ptr<U, Space>() const;
+  // Explicit conversion to `multi_ptr<ElementTypeU, Space>`
+  template <typename ElementTypeU>
+  explicit operator multi_ptr<ElementTypeU, Space>() const;
 
   // Explicit conversion to `multi_ptr<const ElementType, Space>`
   explicit operator multi_ptr<const ElementType, Space>() const;
@@ -85,7 +86,7 @@ class multi_ptr<void, Space> {
 } // namespace cl
 ```
 
-The conversion operator to `multi_ptr<U, Space>` replaces
+The conversion operator to `multi_ptr<ElementTypeU, Space>` replaces
 the existing explicit conversion to `multi_ptr<void, Space>`.
 
 TODO(Peter): Table
