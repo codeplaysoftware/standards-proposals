@@ -99,9 +99,10 @@ class multi_ptr {
 The conversion operator to `multi_ptr<ElementTypeU, Space>` replaces
 the existing explicit conversion to `multi_ptr<void, Space>`.
 
-TODO(Peter): Table
-
-TODO(Peter): Handle multi_ptr<const void, Space>
+| Member function | Description |
+|-----------------|-------------|
+| *`template <typename ElementTypeU>  explicit operator multi_ptr<ElementTypeU, Space>() const`* | Performs a static cast of the underlying pointer `ElementType*` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the static cast from `ElementType*` to `ElementTypeU*` is valid. |
+| *`explicit operator multi_ptr<const ElementType, Space>() const`* | Performs a static cast of the underlying pointer `ElementType*` to `const ElementType*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. |
 
 ## Conversion functions
 
@@ -112,18 +113,22 @@ we propose adding the following free functions to the `cl::sycl` namespace:
 namespace cl {
 namespace sycl {
 
+// Performs a static_cast of the contained pointer
 template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
 multi_ptr<ElementTypeU, Space>
   static_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr);
 
+// Performs a dynamic_cast of the contained pointer
 template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
 multi_ptr<ElementTypeU, Space>
   dynamic_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr);
 
+// Performs a const_cast of the contained pointer
 template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
 multi_ptr<ElementTypeU, Space>
   const_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr);
 
+// Performs a reinterpret_cast of the contained pointer
 template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
 multi_ptr<ElementTypeU, Space>
   reinterpret_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr);
@@ -132,6 +137,15 @@ multi_ptr<ElementTypeU, Space>
 } // namespace cl
 ```
 
-TODO(Peter): Description
+In the table below, each function has the following template parameters:
+```cpp
+template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
+```
 
-TODO(Peter): Table
+| Member function | Description |
+|-----------------|-------------|
+| *`multi_ptr<ElementTypeU, Space> static_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `static_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `static_cast` from `ElementType*` to `ElementTypeU*` is valid. |
+| *`multi_ptr<ElementTypeU, Space> dynamic_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `dynamic_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `dynamic_cast` from `ElementType*` to `ElementTypeU*` is valid. |
+| *`multi_ptr<ElementTypeU, Space> const_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `const_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `const_cast` from `ElementType*` to `ElementTypeU*` is valid. |
+| *`multi_ptr<ElementTypeU, Space> reinterpret_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `reinterpret_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `reinterpret_cast` from `ElementType*` to `ElementTypeU*` is valid. |
+
