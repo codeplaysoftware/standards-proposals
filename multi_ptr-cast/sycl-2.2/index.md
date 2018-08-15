@@ -149,3 +149,42 @@ template <typename ElementTypeU, typename ElementTypeT, access::address_space Sp
 | *`multi_ptr<ElementTypeU, Space> const_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `const_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `const_cast` from `ElementType*` to `ElementTypeU*` is valid. |
 | *`multi_ptr<ElementTypeU, Space> reinterpret_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `reinterpret_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `reinterpret_cast` from `ElementType*` to `ElementTypeU*` is valid. |
 
+## Examples
+
+### Simple casts
+
+These examples focus on `global_ptr` for brevity,
+but it works the same for all `multi_ptr` types.
+
+```cpp
+using namespace cl::sycl;
+const global_ptr<int> ptrInt = get_some_global_ptr();
+
+// Conversion operator
+auto ptrFloat1 = static_cast<global_ptr<float>>(ptrInt);
+auto ptrVoid1 = static_cast<global_ptr<void>>(ptrInt);
+auto ptrConstInt1 = static_cast<global_ptr<const int>>(ptrInt);
+
+// static_pointer_cast
+auto ptrFloat2 = static_pointer_cast<float>(ptrInt);
+auto ptrVoid2 = static_pointer_cast<void>(ptrInt);
+auto ptrConstInt2 = static_pointer_cast<const int>(ptrInt);
+
+// const_pointer_cast
+auto ptrConstInt3 = const_pointer_cast<const int>(ptrInt);
+// auto ptrIntStripConst = static_cast<global_ptr<int>>(ptrConstInt1); // illegal
+auto ptrIntStripConst = const_pointer_cast<int>(ptrConstInt1);
+
+// reinterpret_pointer_cast
+auto ptrFloat4 = reinterpret_pointer_cast<float>(ptrInt);
+auto ptrVoid4 = reinterpret_pointer_cast<void>(ptrInt);
+auto ptrConstInt4 = reinterpret_pointer_cast<const int>(ptrInt);
+```
+
+### `dynamic_pointer_cast`
+
+TODO(Peter)
+
+### Passing `multi_ptr` to functions
+
+TODO(Peter)
