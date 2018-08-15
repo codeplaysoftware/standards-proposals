@@ -42,11 +42,32 @@ in order to make the casting safer and easier to use.
 
 ## Summary
 
-This proposal adds a few explicit conversion operators
-as member functions of the `multi_ptr` class
+This proposal folds the `void` specialization of the `multi_ptr` class
+into the main definition of `multi_ptr<ElementType, Space>`,
+handles the cases where `ElementType` is a `const`-qualified type,
+adds a few explicit conversion operators
+as member functions of the `multi_ptr` class,
 and also adds several free functions to the `cl::sycl` namespace
 that follow the naming and semantics of the `std::shared_ptr` pointer cast functions
 defined by the C++17 standard: https://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast.
+
+## Specializations for void and const void
+
+In SYCL 1.2.1, the `void` specialization of the `multi_ptr` class
+is separate from the main definition
+because it cannot contain any reference types.
+For the purpose of the specification,
+we propose folding the two definitions
+into a single definition of the `multi_ptr` class,
+with comments denoting which types are available
+only if `ElementType` is not `void` or `const void`.
+The main reason for this simplification
+is the introduction of the specialization for `const void`,
+which would require the specification to define another specialization
+that would be mostly the same as the specialization for `void`.
+Simplifying the definiton like this
+also covers the case where `ElementType` is not `void` or `const void`,
+but some other `const`-qualified type.
 
 ## Explicit conversion operators
 
@@ -69,17 +90,6 @@ class multi_ptr {
 
   // Explicit conversion to `multi_ptr<const ElementType, Space>`
   explicit operator multi_ptr<const ElementType, Space>() const;
-};
-
-template <access::address_space Space>
-class multi_ptr<void, Space> {
- public:
-  /// All existing members here
-
-  ...
-
-  // Explicit conversion to `multi_ptr<const void, Space>`
-  explicit operator multi_ptr<const void, Space>() const;
 };
 
 } // namespace sycl
