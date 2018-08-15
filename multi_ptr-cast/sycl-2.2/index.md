@@ -35,7 +35,7 @@ This is problematic on a few levels:
   * Only allows static casts
   * Allows casting the underlying `A*` pointer to a `B*` pointer
     even if the type system forbids it
-  * Does not handle `const` cases
+  * Does not handle `const` qualifiers
 
 Therefore, there is a clear need to provide more casting options for the `multi_ptr` class
 in order to make the casting safer and easier to use.
@@ -88,8 +88,8 @@ class multi_ptr {
   template <typename ElementTypeU>
   explicit operator multi_ptr<ElementTypeU, Space>() const;
 
-  // Explicit conversion to `multi_ptr<const ElementType, Space>`
-  explicit operator multi_ptr<const ElementType, Space>() const;
+  // Implicit conversion to `multi_ptr<const ElementType, Space>`
+  operator multi_ptr<const ElementType, Space>() const;
 };
 
 } // namespace sycl
@@ -101,8 +101,8 @@ the existing explicit conversion to `multi_ptr<void, Space>`.
 
 | Member function | Description |
 |-----------------|-------------|
-| *`template <typename ElementTypeU>  explicit operator multi_ptr<ElementTypeU, Space>() const`* | Performs a static cast of the underlying pointer `ElementType*` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the static cast from `ElementType*` to `ElementTypeU*` is valid. |
-| *`explicit operator multi_ptr<const ElementType, Space>() const`* | Performs a static cast of the underlying pointer `ElementType*` to `const ElementType*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. |
+| *`template <typename ElementTypeU>  explicit operator multi_ptr<ElementTypeU, Space>() const`* | Performs a static cast of the underlying pointer `ElementType*` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `static_cast` from `ElementType*` to `ElementTypeU*` is valid. |
+| *`operator multi_ptr<const ElementType, Space>() const`* | Performs a static cast of the underlying pointer `ElementType*` to `const ElementType*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is implicit because it is always valid to add a `const` qualifier. |
 
 ## Conversion functions
 
