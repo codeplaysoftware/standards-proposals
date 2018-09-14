@@ -2,14 +2,14 @@
 
 This proposal aims to define an interface for using OpenCL 2.2 sub groups in
 SYCL the provisional SYCL 1.2.1 specification, relying on the underlying
-OpenCL implementation supporting the extension `cl_codeplay_basic_sub_groups`.
+OpenCL implementation supporting the extension `cl_codeplay_basic_subgroups`.
 
 The extension exposes to programmers the ability to identify sub-groups
 on a work-group, count the number of sub-groups available and perform
 a broadcast from one work-item on a sub-group to the rest.
 
 Details of the execution and memory model changes can be found in the
-documentation for the Codeplay's OpenCL vendor extension `cl_codeplay_basic_sub_groups` 
+documentation for the Codeplay's OpenCL vendor extension `cl_codeplay_basic_subgroups` 
 once available.
 
 ## Execution model

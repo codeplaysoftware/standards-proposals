@@ -17,7 +17,7 @@ as defined in the SYCL 2.2 provisional and the OpenCL 2.2 provisional,
 in SYCL 1.2.1.
 
 The extension is only targeting OpenCL devices that expose 
-`cl_codeplay_basic_sub_group` vendor extension.
+`cl_codeplay_basic_subgroups` vendor extension.
 
 
 ## References
