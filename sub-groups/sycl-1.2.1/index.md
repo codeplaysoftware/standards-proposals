@@ -35,11 +35,11 @@ possibility to specify an equivalent of sub-group memory scope.
 ## Namespace `basic_sub_group`
 
 All new functionality is exposed under the `basic_sub_group` namespace
-in the codeplay vendor namespace. 
+in the `codeplay` vendor extension namespace.
 When the vendor extension `basic_sub_group` is available, the macro
 `SYCL_CODEPLAY_BASIC_SUB_GROUP` is defined in the header.
 
-### New sub\_group class
+### Class `sub_group`
 
 The extension adds a new class template `sub_group` that identifies the 
 sub group range and the current sub group id. 
@@ -66,7 +66,7 @@ class sub_group {
     = access::fence_space::global_and_local) const;
 
   /* T is permitted to be int, unsigned int, long, unsigned long, 
-      float, half, double */
+    float, half, double */
   template <typename T>
   T broadcast(size_t subGroupId, T value);
 
@@ -106,6 +106,8 @@ void barrier(sub_group<Dimensions> subGroup, access::fence_space accessSpace
 ```
 
 ## Extensions to the nd\_item class
+
+Extensions to the `nd_item` interface will be exposed via the a derived `nd_item` class template in the `codeplay` vendor extension namespace.
 
 New member function `get_sub_group` for identifying the current sub group and gaining access to sub group operations.
 
