@@ -28,4 +28,9 @@ https://www.khronos.org/registry/SYCL/specs/sycl-1.2.1.pdf
 [2] SYCL 2.2 provisional specification (revision date 2016/02/15)
 https://www.khronos.org/registry/SYCL/specs/sycl-2.2.pdf
 
-[3] XXX
+[3] OpenCL 2.2 API specification
+https://www.khronos.org/registry/OpenCL/specs/2.2/pdf/OpenCL_API.pdf
+
+[4] OpenCL C++ 1.0 specification
+https://www.khronos.org/registry/OpenCL/specs/2.2/pdf/OpenCL_Cxx.pdf
+
