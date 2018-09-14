@@ -1,11 +1,36 @@
 # Basic Sub group support
 
-This proposal aims to define an interface for using OpenCL 2.x sub groups in
+This proposal aims to define an interface for using OpenCL 2.2 sub groups in
 SYCL the provisional SYCL 1.2.1 specification, relying on the underlying
 OpenCL implementation supporting the extension `cl_codeplay_basic_sub_groups`.
 
 The extension exposes to programmers the ability to identify sub-groups
 on a work-group, count the number of sub-groups available.
+
+Details of the execution and memory model changes can be found in the
+documentation for the Codeplay's OpenCL vendor extension `cl_codeplay_basic_sub_groups` 
+once available.
+
+## Execution model
+
+When this vendor extension is available, the execution model of SYCL 1.2.1
+is extended to also include support for sub-groups of threads inside of a
+work-group.
+Overall, these sub-groups work following the description of the OpenCL 2.2
+sub-groups, with some restrictions:
+
+* The number of sub-groups available for each work-group is determined 
+at compile-time and remains the same during the execution of the SYCL application.
+* The number of threads per sub-group is known at compile-time, and remains the
+same during execution of the SYCL application.
+* Only those functions defined in this proposal are available. 
+In particular, there is no sub-group pipe communication.
+
+## Memory model
+
+Sub-groups can access global and local memory, but, given there is no 
+memory-scope to the atomic or barriers operations in SYCL 1.2.1, there is no
+possibility to specify an equivalent of sub-group memory scope.
 
 ## Namespace `basic_sub_group`
 
@@ -88,7 +113,7 @@ void barrier(sub_group<Dimensions> subGroup, access::fence_space accessSpace
 }  // namespace cl
 ```
 
-## Extensions to the nd_item class
+## Extensions to the nd\_item class
 
 Extensions to the `nd_item` interface will be exposed via the a derived `nd_item` class template in the `codeplay` vendor extension namespace.
 
@@ -114,4 +139,15 @@ public:
 
 ## Example
 
-TODO: Add example
+```cpp
+template <typename dimT>
+void my_subgroup_load(sub_group<dimT> subG, global_ptr<float> myArray) {
+
+  float4 f;
+  if (subG.get_id() == 0) {  
+    f.load(myArray);
+  }
+  barrier(subG, access::fence_space::global_and_local);
+  float4 res = broadcast(subG, 0, f);
+}
+```
