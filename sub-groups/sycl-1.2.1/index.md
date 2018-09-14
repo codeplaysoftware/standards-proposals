@@ -55,11 +55,11 @@ template <int Dimensions>
 class sub_group {
  public:
 
-  range<Dimensions> nd_item<Dimensions>::get_sub_group_range() const;
+  constexpr range<Dimensions> nd_item<Dimensions>::get_sub_group_range() const;
 
-  size_t nd_item<Dimensions>::get_sub_group_range(int dimension) const;
+  constexpr size_t nd_item<Dimensions>::get_sub_group_range(int dimension) const;
 
-  size_t nd_item<Dimensions>::get_sub_group_linear_range() const;
+  constexpr size_t nd_item<Dimensions>::get_sub_group_linear_range() const;
 
   id<Dimensions> nd_item<Dimensions>::get_sub_group_id() const;
 
@@ -129,7 +129,7 @@ template <int Dimensions>
 class nd_item : public ::cl::sycl::nd_item<Dimensions> {
 public:
 
-  group<Dimensions> nd_item<Dimensions>::get_sub_group() const;
+  sub_group<Dimensions> nd_item<Dimensions>::get_sub_group() const;
 
 };
 
