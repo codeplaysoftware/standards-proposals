@@ -5,7 +5,8 @@ SYCL the provisional SYCL 1.2.1 specification, relying on the underlying
 OpenCL implementation supporting the extension `cl_codeplay_basic_sub_groups`.
 
 The extension exposes to programmers the ability to identify sub-groups
-on a work-group, count the number of sub-groups available.
+on a work-group, count the number of sub-groups available and perform
+a broadcast from one work-item on a sub-group to the rest.
 
 Details of the execution and memory model changes can be found in the
 documentation for the Codeplay's OpenCL vendor extension `cl_codeplay_basic_sub_groups` 
@@ -54,11 +55,11 @@ template <int Dimensions>
 class sub_group {
  public:
 
-  range<Dimensions> nd_item<Dimensions>::get_sub_group_range() const;
+  constexpr range<Dimensions> nd_item<Dimensions>::get_sub_group_range() const;
 
-  size_t nd_item<Dimensions>::get_sub_group_range(int dimension) const;
+  constexpr size_t nd_item<Dimensions>::get_sub_group_range(int dimension) const;
 
-  size_t nd_item<Dimensions>::get_sub_group_linear_range() const;
+  constexpr size_t nd_item<Dimensions>::get_sub_group_linear_range() const;
 
   id<Dimensions> nd_item<Dimensions>::get_sub_group_id() const;
 
@@ -128,7 +129,7 @@ template <int Dimensions>
 class nd_item : public ::cl::sycl::nd_item<Dimensions> {
 public:
 
-  group<Dimensions> nd_item<Dimensions>::get_sub_group() const;
+  sub_group<Dimensions> nd_item<Dimensions>::get_sub_group() const;
 
 };
 
