@@ -139,12 +139,14 @@ public:
 
 ## Example
 
+Below is trivial example showing how you would use `sub_group` to broadcast a value from one work-item within a sub-group to all other work-items in the sub-group.
+
 ```cpp
 template <typename dimT>
 void my_subgroup_load(sub_group<dimT> subG, global_ptr<float> myArray) {
 
   float4 f;
-  if (subG.get_id() == 0) {  
+  if (subG.get_id() == 0) {
     f.load(myArray);
   }
   barrier(subG, access::fence_space::global_and_local);
