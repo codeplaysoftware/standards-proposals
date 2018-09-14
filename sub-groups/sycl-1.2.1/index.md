@@ -1,13 +1,24 @@
-# Sub Groups
+# Basic Sub group support
 
 This proposal aims to define an interface for using OpenCL 2.x sub groups in
-SYCL he provisional SYCL 2.2 specification (revision date 2016/02/15) already
-contains SVM, but this proposal aims to make SVM in SYCL 2.2 more generic,
-easier to program, better defined, and not necessarily tied to OpenCL 2.2.
+SYCL the provisional SYCL 1.2.1 specification, relying on the underlying
+OpenCL implementation supporting the extension `cl_codeplay_basic_sub_groups`.
 
-## sub_group class
+The extension exposes to programmers the ability to identify sub-groups
+on a work-group, count the number of sub-groups available.
 
-New class template `sub_group` for identifying the sub group range and the current sub group id and also for providing sub group barriers.
+## Namespace `basic_sub_group`
+
+All new functionality is exposed under the `basic_sub_group` namespace
+in the codeplay vendor namespace. 
+When the vendor extension `basic_sub_group` is available, the macro
+`SYCL_CODEPLAY_BASIC_SUB_GROUP` is defined in the header.
+
+### New sub\_group class
+
+The extension adds a new class template `sub_group` that identifies the 
+sub group range and the current sub group id. 
+It also for providing sub group barriers.
 
 ```cpp
 template <int Dimensions>
@@ -29,6 +40,11 @@ class sub_group {
   void nd_item<Dimensions>::barrier(access::fence_space accessSpace
     = access::fence_space::global_and_local) const;
 
+  /* T is permitted to be int, unsigned int, long, unsigned long, 
+      float, half, double */
+  template <typename T>
+  T broadcast(size_t subGroupId, T value);
+
   template <typename Predicate>
   bool all_of(Predicate predicate) const;
 
@@ -40,6 +56,9 @@ class sub_group {
 ## Free functions
 
 ```cpp
+template <int Dimensions, T>
+T broadcast(sub_group<Dimensions> subGroup, size_t subGroupId, T value);
+
 template <int Dimensions, typename Predicate>
 bool all_of(group<Dimensions> group, Predicate predicate);
 

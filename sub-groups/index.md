@@ -1,10 +1,10 @@
-# Sub Groups
+# Basic sub-group extension
 
 | Proposal ID | CP016 |
 |-------------|--------|
-| Name | Sub Groups |
+| Name | Basic sub group extension |
 | Date of Creation | 14 September 2018 |
-| Target | SYCL 2.2 |
+| Target | SYCL 1.2.1 |
 | Current Status | _Work In Progress_ |
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
@@ -12,10 +12,13 @@
 
 ## Overview
 
-This proposal aims to define an interface for using OpenCL 2.x sub groups in
-SYCL he provisional SYCL 2.2 specification (revision date 2016/02/15) already
-contains SVM, but this proposal aims to make SVM in SYCL 2.2 more generic,
-easier to program, better defined, and not necessarily tied to OpenCL 2.2.
+This vendor extension aims to define an interface to expose sub-group functionality,
+as defined in the SYCL 2.2 provisional and the OpenCL 2.2 provisional, 
+in SYCL 1.2.1.
+
+The extension is only targeting OpenCL devices that expose 
+`cl_codeplay_basic_sub_group` vendor extension.
+
 
 ## References
 
@@ -24,3 +27,5 @@ https://www.khronos.org/registry/SYCL/specs/sycl-1.2.1.pdf
 
 [2] SYCL 2.2 provisional specification (revision date 2016/02/15)
 https://www.khronos.org/registry/SYCL/specs/sycl-2.2.pdf
+
+[3] XXX
