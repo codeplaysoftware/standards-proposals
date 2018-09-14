@@ -47,6 +47,10 @@ sub group range and the current sub group id.
 It also for providing sub group barriers.
 
 ```cpp
+namespace cl {
+namespace sycl {
+namespace codeplay {
+
 template <int Dimensions>
 class sub_group {
  public:
@@ -71,39 +75,43 @@ class sub_group {
   template <typename T>
   T broadcast(size_t subGroupId, T value);
 
+  /* Predicate must be a callable type which returns bool */
   template <typename Predicate>
   bool all_of(Predicate predicate) const;
 
+  /* Predicate must be a callable type which returns bool */
   template <typename Predicate>
   bool any_of(Predicate predicate) const;
 };
+
+}  // namespace codeplay
+}  // namespace sycl
+}  // namespace cl
 ```
 
 ## Free functions
 
 ```cpp
+namespace cl {
+namespace sycl {
+namespace codeplay {
+
 template <int Dimensions, T>
 T broadcast(sub_group<Dimensions> subGroup, size_t subGroupId, T value);
-
-template <int Dimensions, typename Predicate>
-bool all_of(group<Dimensions> group, Predicate predicate);
 
 template <int Dimensions, typename Predicate>
 bool all_of(sub_group<Dimensions> subGroup, Predicate predicate);
 
 template <int Dimensions, typename Predicate>
-bool any_of(group<Dimensions> group, Predicate predicate);
-
-template <int Dimensions, typename Predicate>
 bool any_of(sub_group<Dimensions> subGroup, Predicate predicate);
-
-template <int Dimensions>
-void barrier(group<Dimensions> group, access::fence_space accessSpace
-  = access::fence_space::global_and_local) const;
 
 template <int Dimensions>
 void barrier(sub_group<Dimensions> subGroup, access::fence_space accessSpace
   = access::fence_space::global_and_local) const;
+
+}  // namespace codeplay
+}  // namespace sycl
+}  // namespace cl
 ```
 
 ## Extensions to the nd\_item class
@@ -113,11 +121,21 @@ Extensions to the `nd_item` interface will be exposed via the a derived `nd_item
 New member function `get_sub_group` for identifying the current sub group and gaining access to sub group operations.
 
 ```cpp
-...
+namespace cl {
+namespace sycl {
+namespace codeplay {
 
-group<Dimensions> nd_item<Dimensions>::get_sub_group() const;
+template <int Dimensions>
+class nd_item : public ::cl::sycl::nd_item<Dimensions> {
+public:
 
-...
+  group<Dimensions> nd_item<Dimensions>::get_sub_group() const;
+
+};
+
+}  // namespace codeplay
+}  // namespace sycl
+}  // namespace cl
 ```
 
 ## Example
