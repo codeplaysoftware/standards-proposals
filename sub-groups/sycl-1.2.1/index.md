@@ -55,20 +55,19 @@ template <int Dimensions>
 class sub_group {
  public:
 
-  constexpr range<Dimensions> nd_item<Dimensions>::get_sub_group_range() const;
+  constexpr range<Dimensions> get_sub_group_range() const;
 
-  constexpr size_t nd_item<Dimensions>::get_sub_group_range(int dimension) const;
+  constexpr size_t get_sub_group_range(int dimension) const;
 
-  constexpr size_t nd_item<Dimensions>::get_sub_group_linear_range() const;
+  constexpr size_t get_sub_group_linear_range() const;
 
-  id<Dimensions> nd_item<Dimensions>::get_sub_group_id() const;
+  id<Dimensions> get_sub_group_id() const;
 
-  size_t nd_item<Dimensions>::get_sub_group_id(int dimension) const;
+  size_t get_sub_group_id(int dimension) const;
 
-  size_t nd_item<Dimensions>::get_sub_group_linear_id() const;
+  size_t get_sub_group_linear_id() const;
 
-  void nd_item<Dimensions>::barrier(access::fence_space accessSpace
-    = access::fence_space::global_and_local) const;
+  void barrier(access::fence_space accessSpace = access::fence_space::global_and_local) const;
 
   /* T is permitted to be int, unsigned int, long, unsigned long, 
     float, half, double */
@@ -129,7 +128,7 @@ template <int Dimensions>
 class nd_item : public ::cl::sycl::nd_item<Dimensions> {
 public:
 
-  sub_group<Dimensions> nd_item<Dimensions>::get_sub_group() const;
+  sub_group<Dimensions> get_sub_group() const;
 
 };
 
@@ -143,6 +142,8 @@ public:
 Below is trivial example showing how you would use `sub_group` to broadcast a value from one work-item within a sub-group to all other work-items in the sub-group.
 
 ```cpp
+using namespace cl::sycl;
+
 template <typename dimT>
 void my_subgroup_load(sub_group<dimT> subG, global_ptr<float> myArray) {
 
