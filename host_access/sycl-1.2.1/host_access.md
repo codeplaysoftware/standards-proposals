@@ -33,10 +33,10 @@ said context.
 namespace codeplay {
 
 enum class host_access_mode {
-  read;
-  read_write;
-  write;
-  none;
+  read,
+  read_write,
+  write,
+  none
 };
 
 struct host_access {
