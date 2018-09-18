@@ -34,10 +34,10 @@ said context.
 namespace codeplay {
 
 enum class host_access_mode {
+  none,
   read,
   read_write,
-  write,
-  none
+  write
 };
 
 struct host_access {
@@ -53,7 +53,9 @@ struct host_access {
 ## Example
 
 The following example is a simplification of a reduction kernel 
-that uses a temporary storage to avoid modifying the input buffer.
+that uses temporary storage to avoid modifying the input buffer, and
+then proceeds to manipulate the data on device only.
+
 
 ```cpp
 context deviceContext;
@@ -121,9 +123,11 @@ auto f = [&](handler &h) mutable {
 
 ## Implementation notes
 
-An implementation may decide to not take advantage of this hint and 
+* An implementation may decide to not take advantage of this hint and 
 simply construct a normal buffer object underneath.
 However, if the buffer is accessed on the host, this must raise an error.
+
+* Using a buffer with host access restrictions with the host-device results in undefined behavior.
 
 ## References
 
