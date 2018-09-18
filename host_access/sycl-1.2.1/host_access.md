@@ -59,7 +59,7 @@ then proceeds to manipulate the data on device only.
 
 ```cpp
 context deviceContext;
-queue q{context};
+queue q{deviceContext};
 range<3> myRange{3, 3, 3};
 /* A normal buffer that holds the data for 
  * the execution.
@@ -81,8 +81,7 @@ std::for_each(sycl_named_policy<example>(otherQueue),
  * performed.
  */
 buffer<float, 1> tmp{myRange, 
-                     property::buffer::context_bound(deviceContext)
-                    | codeplay::property::buffer::host_access(none) };
+                    {property::buffer::context_bound(deviceContext), codeplay::property::buffer::host_access(host_access_mode::none)} };
 
 bool firstIter = true;
 
@@ -95,9 +94,9 @@ do {
     accessor<float, 1, access::mode::read_write, access::target::local>
           scratch(range<1>(local), h);
     
-    if (first) {
+    if (firstIter) {
       h.parallel_for(r, ReductionKernel(aIn, aInOut));
-      first = false;
+      firstIter = false;
     } else {
       h.parallel_for(r, ReductionKernel(aInOut, aInOut));
     }
