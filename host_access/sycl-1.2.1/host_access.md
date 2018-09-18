@@ -16,7 +16,8 @@ This is possible in OpenCL 1.2 by using the CL_MEM_HOST_NO_ACCESS, CL_MEM_HOST_R
 
 A SYCL implementation for OpenCL needs to analyze the access pattern at compile time, or replace the underlying cl_mem object, in order to infer the host access pattern and create buffers with the appropriate flags.
 
-This proposal enables developers to specify the intended use pattern of a buffer, facilitating a SYCL runtime the usage of optimized buffer flags creation.
+This proposal enables developers to specify the intended use pattern of a buffer, allowing
+SYCL implementations of taking advantage of knowing if a given buffer is usable by the host or not.
 
 ## Revisions
 
