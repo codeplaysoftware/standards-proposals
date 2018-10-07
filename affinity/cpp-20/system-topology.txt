@@ -1,0 +1,39 @@
+digraph G {
+
+	subgraph cluster_0 {
+		style=filled;
+		color=lightgrey;
+		node [style=filled,color=white];
+		"Execution Root" -> "CPU0";
+		"CPU0" -> "Core0";
+		"CPU0" -> "Core1";
+		"CPU0" -> "Core2";
+		"CPU0" -> "Core3";
+		"Execution Root" -> "CPU1";
+		"CPU1" -> "Core4";
+		"CPU1" -> "Core5";
+		"CPU1" -> "Core6";
+		"CPU1" -> "Core7";
+		"Execution Root" -> "GPU";
+		"GPU" -> "Compute Units [N]";
+		label = "execution";
+	}
+
+	subgraph cluster_1 {
+		style=filled;
+		color=lightgrey;
+		node [style=filled,color=white];
+		"Memory Root" -> "NUMA0";
+                "Memory Root" -> "NUMA1";
+                "Memory Root" -> "GPU Global";
+		label = "memory";
+	}
+
+        "this_system::discover_topology()" -> "Execution Root" [color="green"];
+        "Execution Root" -> "Memory Root" [color="blue"];
+        "CPU0" -> "NUMA0" [color="blue"];
+        "CPU1" -> "NUMA1" [color="blue"];
+        "GPU" -> "GPU Global" [color="blue"];
+
+	"this_system::discover_topology()" [shape=Mdiamond];
+}
