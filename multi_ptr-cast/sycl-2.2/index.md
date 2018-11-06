@@ -149,6 +149,10 @@ template <typename ElementTypeU, typename ElementTypeT, access::address_space Sp
 | *`multi_ptr<ElementTypeU, Space> const_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `const_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `const_cast` from `ElementType*` to `ElementTypeU*` is valid. |
 | *`multi_ptr<ElementTypeU, Space> reinterpret_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `reinterpret_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `reinterpret_cast` from `ElementType*` to `ElementTypeU*` is valid. |
 
+## Add `const` to existing functions taking a `multi_ptr`
+
+TODO(Peter)
+
 ## Examples
 
 ### Simple casts
@@ -188,3 +192,19 @@ TODO(Peter)
 ### Passing `multi_ptr` to functions
 
 TODO(Peter)
+
+Implicit conversion to `multi_ptr<const ElementType, Space>`:
+
+```cpp
+
+using namespace cl::sycl;
+
+template <typename ElementType, access::address_space Space>
+void function_taking_const_ptr(const multi_ptr<const ElementType, Space>& ptr);
+
+const global_ptr<int> ptrInt = get_some_global_ptr();
+
+// function_taking_const_ptr(static_cast<const int>(static_cast<void>(ptrInt)));
+function_taking_const_ptr(ptrInt);
+
+```
