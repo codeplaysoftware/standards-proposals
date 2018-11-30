@@ -17,7 +17,7 @@ This functionality is used in some cases to expose optimal implementation of som
 access some fixed-function hardware available on the platform as a non-programmable OpenCL kernel.
 
 Nowadays SYCL developers can use the OpenCL interoperability functionality to use built-in kernels whenever required.
-However this can be cumbersome and prone to errors as it forces switching back and forward from OpenCL and SYCL/C++.
+However this can be cumbersome and error prone as it forces switching back and forward from OpenCL and SYCL/C++.
 
 This vendor extension to the SYCL 1.2.1 specification exposes an interface to work directly from SYCL with
 OpenCL built-in kernels. 
@@ -31,6 +31,7 @@ to the built-in kernels, enabling compile-time checking of parameters.
 ## Outside of the scope of this extension
 
 * Host emulation of built-in kernels
+* Methods to check whether if the program class has builtin kernels or not
 
 ## Revisions
 
@@ -41,7 +42,7 @@ This is the first revision of this extension.
 ### Program class
 
 The program class is extended with a new method, `create_from_built_in_kernel`, 
-which internally uses the relevant OpenCL call(s) to create a valid program object for the devices associated with the instance of the program.
+which internally uses the relevant low-level API call(s) to create a valid program object for the devices associated with the instance of the program.
 Built-in kernels do not require a building stage, so the program state is immediately set to executable.
 
 Built-in kernels are not available on the host-device, and will raise `cl::sycl::invalid_context` exception when calling the method on a host context.
@@ -51,6 +52,8 @@ Similarly, building, compiling or linking a program created from built-in kernel
 
 
 ## Example
+
+The complete example can be found in the ComputeCPP SDK, the relevant parts are highlighted below:
 
 ```cpp
    {
