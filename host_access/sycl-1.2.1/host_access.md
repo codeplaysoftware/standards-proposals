@@ -1,4 +1,4 @@
-# Temporary buffer
+# Restricting host access to SYCL buffers
 
 | Proposal ID | CP017 |
 |-------------|--------|
