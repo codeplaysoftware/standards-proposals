@@ -6,7 +6,7 @@
 | Date of Creation | 12 October 2018 |
 | Target | SYCL 1.2.1 vendor extension |
 | Current Status | _Work In Progress_ |
-| Implemented in | _N/A_ |
+| Available since | _ComputeCpp CE 1.0.3_ |
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 
