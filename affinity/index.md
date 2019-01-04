@@ -22,8 +22,10 @@ This paper provides an initial meta-framework for the drives toward memory affin
 | [P0796r0][p0796r0] | _Published_ |
 | [P0796r1][p0796r1] | _Published_ |
 | [D0796r2][p0796r2] | _Published_ |
-| [D0796r3](cpp-20/d0796r3.md) | _Work In Progress_ |
+| [D0796r3][p0796r3] | _Published_ |
+| [D0796r4](cpp-20/d0796r4.md) | _Work In Progress_ |
 
 [p0796r0]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0796r0.pdf
 [p0796r1]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0796r1.pdf
 [p0796r2]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0796r2.pdf
+[p0796r3]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0796r3.pdf
