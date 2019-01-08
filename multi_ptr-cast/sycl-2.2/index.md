@@ -151,7 +151,19 @@ template <typename ElementTypeU, typename ElementTypeT, access::address_space Sp
 
 ## Add `const` to existing functions taking a `multi_ptr`
 
-TODO(Peter)
+For the class `vec`,
+use a const-qualified `multi_ptr` for the `load` member function:
+
+```cpp
+template <typename dataT, int numElements>
+class vec {
+ public:
+  /// Existing members
+
+  template <access::address_space addressSpace>
+  void load(size_t offset, multi_ptr<const dataT, addressSpace> ptr);
+};
+```
 
 ## Examples
 
