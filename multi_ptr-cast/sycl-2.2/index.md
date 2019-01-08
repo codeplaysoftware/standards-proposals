@@ -174,7 +174,7 @@ but it works the same for all `multi_ptr` types.
 
 ```cpp
 using namespace cl::sycl;
-const global_ptr<int> ptrInt = get_some_global_ptr();
+const global_ptr<int> ptrInt = get_some_global_ptr<int>();
 
 // Conversion operator
 auto ptrFloat1 = static_cast<global_ptr<float>>(ptrInt);
@@ -199,24 +199,44 @@ auto ptrConstInt4 = reinterpret_pointer_cast<const int>(ptrInt);
 
 ### `dynamic_pointer_cast`
 
-TODO(Peter)
+```cpp
+struct Base {
+  virtual void foo() const {}
+  virtual ~Base(){}
+};
+struct Derived : public Base {
+  void foo() const override {}
+};
+
+using namespace cl::sycl;
+const global_ptr<Base> ptrBase = get_some_global_ptr<int>();
+
+auto ptrDerived = dynamic_pointer_cast<Derived>(ptrBase);
+auto ptrBase1 = dynamic_pointer_cast<Base>(ptrDerived);
+```
 
 ### Passing `multi_ptr` to functions
 
-TODO(Peter)
-
-Implicit conversion to `multi_ptr<const ElementType, Space>`:
-
 ```cpp
-
 using namespace cl::sycl;
 
 template <typename ElementType, access::address_space Space>
+void function_taking_ptr(const multi_ptr<ElementType, Space>& ptr);
+template <typename ElementType, access::address_space Space>
 void function_taking_const_ptr(const multi_ptr<const ElementType, Space>& ptr);
 
-const global_ptr<int> ptrInt = get_some_global_ptr();
+const global_ptr<int> ptrInt = get_some_global_ptr<int>();
 
-// function_taking_const_ptr(static_cast<const int>(static_cast<void>(ptrInt)));
+function_taking_ptr(ptrInt);
+// Implicit conversion to global_ptr<const int>:
 function_taking_const_ptr(ptrInt);
+
+const global_ptr<float> ptrFloat = get_some_global_ptr<float>();
+
+// Convert float to int pointer
+function_taking_ptr(reinterpret_ptr_cast<int>(ptrFloat));
+// First explicit conversion to global_ptr<int>
+// and then implicit conversion to global_ptr<const int>:
+function_taking_const_ptr(reinterpret_ptr_cast<int>(ptrFloat));
 
 ```
