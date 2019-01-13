@@ -1,4 +1,4 @@
-# D0796r3: Supporting Heterogeneous & Distributed Computing Through Affinity
+# DXXXXr0: Executor properties for affinity-based execution
 
 **Date: 2019-01-12**
 

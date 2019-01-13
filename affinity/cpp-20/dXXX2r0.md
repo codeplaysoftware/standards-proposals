@@ -1,4 +1,4 @@
-# D0796r3: Supporting Heterogeneous & Distributed Computing Through Affinity
+# DXXXXr0: System topology discovery for heterogeneous & distributed computing
 
 **Date: 2019-01-12**
 
