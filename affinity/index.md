@@ -3,7 +3,7 @@
 |   |   |
 |---|---|
 | ID | CP013 |
-| Name | Supporting Heterogeneous & Distributed Computing Through Affinity |
+| Name | Executor properties for affinity-based execution <br> System topology discovery for heterogeneous & distributed computing |
 | Target | ISO C++ SG1 SG14 |
 | Initial creation | 15 November 2017 |
 | Last update | 12 August 2018 |
@@ -23,7 +23,7 @@ This paper provides an initial meta-framework for the drives toward memory affin
 | [P0796r1][p0796r1] | _Published_ |
 | [D0796r2][p0796r2] | _Published_ |
 | [D0796r3][p0796r3] | _Published_ |
-| [D0796r4](cpp-20/d0796r4.md) | _Work In Progress_ |
+| [DXXX1r0](cpp-20/dXXX1r0.md) <br> [DXXX2r0](cpp-20/dXXX2r0.md) | _Work In Progress_ |
 
 [p0796r0]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0796r0.pdf
 [p0796r1]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0796r1.pdf

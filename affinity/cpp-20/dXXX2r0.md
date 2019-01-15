@@ -1,8 +1,8 @@
-# D0796r3: Supporting Heterogeneous & Distributed Computing Through Affinity
+# DXXXXr0: System topology discovery for heterogeneous & distributed computing
 
-**Date: 2018-10-08**
+**Date: 2019-01-12**
 
-**Audience: SG1, LEWG, LWG, SG14**
+**Audience: SG1, SG14, LEWG**
 
 **Authors: Gordon Brown, Ruyman Reyes, Michael Wong, H. Carter Edwards, Thomas Rodgers, Mark Hoemmen**
 
@@ -12,7 +12,12 @@
 
 **Reply to: gordon@codeplay.com**
 
+
 # Changelog
+
+### PXXXXr0 (KON 2019)
+
+* This paper is the result of a request from SG1 at the 2018 San Diego meeting to split [[35]][p0796] into two separate papers, one for the high-level interface and one for the low-level interface. This paper focusses on the low-level interface; a mechanism for discovering the topology and affinity properties of a given system. [[36]][pXXXX] focusses on the high-level interface; a series of properties for querying affinity relationships and requesting affinity on work being executed.
 
 ### P0796r3 (SAN 2018)
 
@@ -46,14 +51,13 @@
 * Initial proposal.
 * Enumerate design space, hierarchical affinity, issues to the committee.
 
+
 # Abstract
 
 This paper provides an initial meta-framework for the drives toward an execution and memory affinity model for C\+\+.  It accounts for feedback from the Toronto 2017 SG1 meeting on Data Movement in C\+\+ [[1]][p0687r0] that we should define affinity for C\+\+ first, before considering inaccessible memory as a solution to the separate memory problem towards supporting heterogeneous and distributed computing.
 
-This paper is split into two main parts:
+This paper proposes an interface for discovering the execution resources within the system topology and querying relative affinity of execution resources.
 
-1. A series of executor properties which can be used to apply affinity requirements to bulk execution functions.
-2. An interface for discovering the execution resources within the system topology and querying relative affinity of execution resources.
 
 # Motivation
 
@@ -117,7 +121,7 @@ Libraries such as the [Portable Hardware Locality (hwloc) library][hwloc] provid
 
 Some systems give additional user control through explicit binding of threads to processors through environment variables consumed by various compilers, system commands, or system calls.  Examples of system commands include Linux's `taskset` and `numactl`, and Windows' `start /affinity`.  System call examples include Solaris' `pbind()`, Linux's `sched_setaffinity()`, and Windows' `SetThreadAffinityMask()`.
 
-## Problem Space
+## Problem Space (WIP)
 
 In this paper we describe the problem space of affinity for C\+\+, the various challenges which need to be addressed in defining a partitioning and affinity interface for C\+\+, and some suggested solutions.  These include:
 
@@ -245,40 +249,14 @@ The relative position of two components in the topology does not necessarily ind
 
 This feature could be easily scaled to heterogeneous and distributed systems, as the relative affinity between components can apply to discrete heterogeneous and distributed systems as well.
 
+
 # Proposal
 
 ## Overview
 
 In this paper we propose an interface for discovering the execution resources within a system, querying the relative affinity metric between those execution resources, and then using those execution resources to allocate memory and execute work with affinity to the underlying hardware those execution resources represent. The interface described in this paper builds on the existing interface for executors and execution contexts defined in the executors proposal [[22]][p0443r7].
 
-### Interface granularity
-
-In this paper is split into two main parts:
-* A series of executor properties describe desired behavior when using parallel algorithms or libraries. These properties provide a low granularity and is aimed at users who may have little or no knowledge of the system architecture.
-* A series of execution resource topology mechanisms for discovering detailed information about the system's topology and affinity properties which can be used to hand optimize parallel applications and libraries for the best performance. These mechanisms provide a high granularity and is aimed at users who have a high knowledge of the system architecture.
-
-## Executor properties
-
-### Bulk execution affinity
-
-In this paper we propose an executor property group called `bulk_execution_affinity` which contains the nested properties `none`, `balanced`, `scatter` or `compact`. Each of these properties, if applied to an *executor* enforce a particular guarantee of execution agent binding to the *execution resource*s associated with the *executor* in a particular pattern.
-
-Below *(Listing 2)* is an example of executing a parallel task over 8 threads using `bulk_execute`, with the affinity binding `bulk_execution_affinity.scatter`.
-
-```cpp
-{
-  auto exec = executionContext.executor();
-
-  auto affExec = execution::require(exec, execution::bulk,
-    execution::bulk_execution_affinity.scatter);
-
-  affExec.bulk_execute([](std::size_t i, shared s) {
-    func(i);
-  }, 8, sharedFactory);
-}
-
-```
-*Listing 2: Example of using the bulk_execution_affinity property*
+A series of execution resource topology mechanisms for discovering detailed information about the system's topology and affinity properties which can be used to hand optimize parallel applications and libraries for the best performance. These mechanisms provide a high granularity and is aimed at users who have a high knowledge of the system architecture.
 
 ## Execution resource topology
 
@@ -414,169 +392,146 @@ The `execution_resource` which underlies the current thread of execution can be 
 
 ## Header `<execution>` synopsis
 
-    namespace std {
-    namespace experimental {
-    namespace execution {
+```cpp
+namespace std {
+namespace experimental {
+namespace execution {
 
-    /* Bulk execution affinity properties */
+/* Execution resource */
 
-    struct bulk_execution_affinity_t;
+class execution_resource {
+    public:
 
-    constexpr bulk_execution_affinity_t bulk_execution_affinity;
+    using value_type = execution_resource;
+    using pointer = execution_resource *;
+    using const_pointer = const execution_resource *;
+    using iterator = see-below;
+    using const_iterator = see-below;
+    using reference = execution_resource &;
+    using const_reference = const execution_resource &;
+    using size_type = std::size_t;
 
-    /* Execution resource */
+    execution_resource() = delete;
+    execution_resource(const execution_resource &);
+    execution_resource(execution_resource &&);
+    execution_resource &operator=(const execution_resource &);
+    execution_resource &operator=(execution_resource &&);
+    ~execution_resource();
 
-    class execution_resource {
-     public:
+    size_type size() const noexcept;
 
-      using value_type = execution_resource;
-      using pointer = execution_resource *;
-      using const_pointer = const execution_resource *;
-      using iterator = see-below;
-      using const_iterator = see-below;
-      using reference = execution_resource &;
-      using const_reference = const execution_resource &;
-      using size_type = std::size_t;
+    const_iterator begin() const noexcept;
+    const_iterator end() const noexcept;
 
-      execution_resource() = delete;
-      execution_resource(const execution_resource &);
-      execution_resource(execution_resource &&);
-      execution_resource &operator=(const execution_resource &);
-      execution_resource &operator=(execution_resource &&);
-      ~execution_resource();
+    const_reference operator[](std::size_t child) const noexcept;
 
-      size_type size() const noexcept;
+    const_pointer member_of() const noexcept;
 
-      const_iterator begin() const noexcept;
-      const_iterator end() const noexcept;
+    size_t concurrency() const noexcept;
 
-      const_reference operator[](std::size_t child) const noexcept;
+    std::string name() const noexcept;
 
-      const_pointer member_of() const noexcept;
+    memory_resource::pointer memory_resource() const noexcept;
 
-      size_t concurrency() const noexcept;
+};
 
-      std::string name() const noexcept;
+/* Memory resource */
 
-      memory_resource::pointer memory_resource() const noexcept;
+class memory_resource : public pmr::memory_resource {
+    public:
 
-    };
+    using value_type = memory_resource;
+    using pointer = memory_resource *;
+    using const_pointer = const memory_resource *;
+    using iterator = see-below;
+    using const_iterator = see-below;
+    using reference = memory_resource &;
+    using const_reference = const memory_resource &;
+    using size_type = std::size_t;
 
-    /* Memory resource */
+    memory_resource() = delete;
+    memory_resource(const memory_resource &);
+    memory_resource(memory_resource &&);
+    memory_resource &operator=(const memory_resource &);
+    memory_resource &operator=(memory_resource &&);
+    ~memory_resource();
 
-    class memory_resource : public pmr::memory_resource {
-     public:
+    size_type size() const noexcept;
 
-      using value_type = memory_resource;
-      using pointer = memory_resource *;
-      using const_pointer = const memory_resource *;
-      using iterator = see-below;
-      using const_iterator = see-below;
-      using reference = memory_resource &;
-      using const_reference = const memory_resource &;
-      using size_type = std::size_t;
+    const_iterator begin() const noexcept;
+    const_iterator end() const noexcept;
 
-      memory_resource() = delete;
-      memory_resource(const memory_resource &);
-      memory_resource(memory_resource &&);
-      memory_resource &operator=(const memory_resource &);
-      memory_resource &operator=(memory_resource &&);
-      ~memory_resource();
+    const_reference operator[](std::size_t child) const noexcept;
 
-      size_type size() const noexcept;
+    const_pointer member_of() const noexcept;
 
-      const_iterator begin() const noexcept;
-      const_iterator end() const noexcept;
+    std::string name() const noexcept;
 
-      const_reference operator[](std::size_t child) const noexcept;
+};
 
-      const_pointer member_of() const noexcept;
+/* Execution context */
 
-      std::string name() const noexcept;
+class execution_context {
+    public:
 
-    };
+    using executor_type = see-below;
 
-    /* Execution context */
+    execution_context(const execution_resource &) noexcept;
 
-    class execution_context {
-     public:
+    ~execution_context();
 
-      using executor_type = see-below;
+    execution_resource &resource() const noexcept;
 
-      execution_context(const execution_resource &) noexcept;
+    executor_type executor() const;
 
-      ~execution_context();
+};
 
-      execution_resource &resource() const noexcept;
+/* Affinity query */
 
-      executor_type executor() const;
+enum class affinity_operation { read, write, copy, move, map };
+enum class affinity_metric { latency, bandwidth, capacity, power_consumption };
 
-    };
+template <affinity_operation Operation, affinity_metric Metric>
+class affinity_query {
+    public:
 
-    /* Affinity query */
+    using native_affinity_type = see-below;
+    using error_type = see-below
 
-    enum class affinity_operation { read, write, copy, move, map };
-    enum class affinity_metric { latency, bandwidth, capacity, power_consumption };
+    affinity_query(const execution_resource &, const memory_resource &) noexcept;
 
-    template <affinity_operation Operation, affinity_metric Metric>
-    class affinity_query {
-     public:
+    ~affinity_query();
 
-      using native_affinity_type = see-below;
-      using error_type = see-below
+    native_affinity_type native_affinity() const noexcept;
 
-      affinity_query(const execution_resource &, const memory_resource &) noexcept;
+    friend expected<size_t, error_type> operator==(const affinity_query&, const affinity_query&);
+    friend expected<size_t, error_type> operator!=const affinity_query&, const affinity_query&);
+    friend expected<size_t, error_type> operator<(const affinity_query&, const affinity_query&);
+    friend expected<size_t, error_type> operator>(const affinity_query&, const affinity_query&);
+    friend expected<size_t, error_type> operator<=(const affinity_query&, const affinity_query&);
+    friend expected<size_t, error_type> operator>=(const affinity_query&, const affinity_query&);
 
-      ~affinity_query();
+};
 
-      native_affinity_type native_affinity() const noexcept;
+}  // execution
 
-      friend expected<size_t, error_type> operator==(const affinity_query&, const affinity_query&);
-      friend expected<size_t, error_type> operator!=const affinity_query&, const affinity_query&);
-      friend expected<size_t, error_type> operator<(const affinity_query&, const affinity_query&);
-      friend expected<size_t, error_type> operator>(const affinity_query&, const affinity_query&);
-      friend expected<size_t, error_type> operator<=(const affinity_query&, const affinity_query&);
-      friend expected<size_t, error_type> operator>=(const affinity_query&, const affinity_query&);
+/* This system */
 
-    };
+namespace this_system {
+    execution_resource discover_topology();
+}
 
-    }  // execution
+/* This thread */
 
-    /* This system */
+namespace this_thread {
+    std::experimental::execution::execution_resource get_resource() noexcept;
+}
 
-    namespace this_system {
-      execution_resource discover_topology();
-    }
-
-    /* This thread */
-
-    namespace this_thread {
-      std::experimental::execution::execution_resource get_resource() noexcept;
-    }
-
-    }  // experimental
-    }  // std
+}  // experimental
+}  // std
+```
 
 *Listing 7: Header synopsis*
-
-## Bulk execution affinity properties
-
-The `bulk_execution_affinity_t` property describes what guarantees executors provide about the binding of *execution agent*s to the underlying *execution resource*s.
-
-bulk_execution_affinity_t provides nested property types and objects as described below. These properties are behavioral properties as described in [[22]][p0443r7] so must adhere to the requirements of behavioral properties and the requirements described below.
-
-| Nested Property Type | Nested Property Name | Requirements |
-|----------------------|----------------------|--------------|
-| bulk_execution_affinity_t::none_t | bulk_execution_affinity_t::none | A call to an executor's bulk execution function may or may not bind the *execution agent*s to the underlying *execution resource*s. The affinity binding pattern may or may not be consistent across invocations of the executor's bulk execution function.  |
-| bulk_execution_affinity_t::scatter_t | bulk_execution_scatter_t::scatter | A call to an executor's bulk execution function must bind the *execution agent*s to the underlying *execution resource*s such that they are distributed across the *execution resource*s where each *execution agent* far from it's preceding and following *execution agent*s. The affinity binding pattern must be consistent across invocations of the executor's bulk execution function. |
-| bulk_execution_affinity_t::compact_t | bulk_execution_compact_t::compact | A call to an executor's bulk execution function must bind the *execution agent*s to the underlying *execution resource*s such that they are in sequence across the *execution resource*s where each *execution agent* close to it's preceding and following *execution agent*s. The affinity binding pattern must be consistent across invocations of the executor's bulk execution function. |
-| bulk_execution_affinity_t::balanced_t | bulk_execution_balanced_t::balanced | A call to an executor's bulk execution function must bind the *execution agent*s to the underlying *execution resource*s such that they are in sequence and evenly spread across the *execution resource*s where each *execution agent* is close to it's preceding and following *execution agent*s and all *execution resource*s are utilized. The affinity binding pattern must be consistent across invocations of the executor's bulk execution function. |
-
-> [*Note:* The requirements of the `bulk_execution_affinity_t` nested properties do not enforce a specific binding, simply that the binding follows the requirements set out above and that the pattern is consistent across invocations of the bulk execution functions. *--end note*]
-
-> [*Note:* If two *executor*s `e1` and `e2` invoke a bulk execution function in order, where `execution::query(e1, execution::context) == query(e2, execution::context)` is `true` and `execution::query(e1, execution::bulk_execution_affinity) == query(e2, execution::bulk_execution_affinity)` is `false`, this will likely result in `e1` binding *execution agent*s if necessary to achieve the requested affinity pattern and then `e2` rebinding to achieve the new affinity pattern. *--end note*]
-
-> [*Note:* The terms used for the `bulk_execution_affinity_t` nested properties are derived from the OpenMP properties [[33]][openmp-affinity] including the Intel specific balanced affinity binding [[[34]][intel-balanced-affinity] *--end note*]
 
 ## Class `execution_resource`
 
@@ -823,24 +778,6 @@ However going forward there are a few different directions the execution context
 | Should the execution context be a concrete type specifically for the purpose of managing execution resources, as described above in option B? |
 | Should the execution context be a concept, as described above in option C? |
 
-## Who should have control over bulk execution affinity?
-
-This paper currently proposes the `bulk_execution_affinity_t` properties and it's nested properties for allowing an *executor* to make guarantees as to how *execution agent*s are bound to the underlying *execution resource*s. However providing control at this level may lead to *execution agent*s being bound to *execution resource*s within a critical path. A possible solution to this is to allow the *execution context* to be configured with `bulk_execution_affinity_t` nested properties, either instead of the *executor* property or in addition. This would allow the binding of *threads of execution* to be performed at the time of the *execution context* creation.
-
-| Straw Poll |
-|------------|
-| Should the *execution context* be able to manage the binding of all *threads of execution* which it manages using the `bulk_execution_affinity_t` nested properties? |
-| Should the *executor* be able to manage the binding of all *execution agent*s which it manages using the `bulk_execution_affinity_t` nested properties? |
-| Should both the *execution context* and the *executor* be able to manage the binding of *threads of execution* and subsequently *execution agent*s using the `bulk_execution_affinity_t` nested properties? |
-
-## Migrating data from memory allocated in one partition to another
-
-With the ability to place memory with affinity comes the ability to define algorithms or memory policies which describe at a higher level how memory is distributed across large systems. Some examples of these are pinned, first touch, and scatter. This is outside the scope of this paper, though we would like to investigate this in a future paper.
-
-| Straw Poll |
-|------------|
-| Should the interface provide a way of migrating data between partitions? |
-
 ## Level of abstraction
 
 The current proposal provides an interface for querying whether an `execution_resource` can allocate and/or execute work, it can provide the concurrency it supports and it can provide a name. We also provide the `affinity_query` structure for querying the relative affinity metrics between two `execution_resource`s. However, this may not be enough information for users to take full advantage of the system. For example, they may also want to know what kind of memory is available or the properties by which work is executed. We decided that attempting to enumerate the various hardware components would not be ideal, as that would make it harder for implementers to support new hardware. We think a better approach would be to parameterize the additional properties of hardware such that hardware queries could be much more generic.
@@ -851,14 +788,16 @@ We may wish to mirror the design of the executors proposal [[22]][p0443r7] and h
 |------------|
 | Is this the correct approach to take? If so, what should such an interface look like and what kind of hardware properties should we expose? |
 
+
 # Acknowledgments
 
 Thanks to Christopher Di Bella, Toomas Remmelg, and Morris Hafner for their reviews and suggestions.
 
+
 # References
 
-[p0687r0]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0687r0.pdf
-[[1]][p0687r0] P0687r0: Data Movement in C\+\+
+[p0687]: http://wg21.link/p0687
+[[1]][p0687] P0687: Data Movement in C\+\+
 
 [design-of-openmp]: https://link.springer.com/chapter/10.1007/978-3-642-30961-8_2
 [[2]][design-of-openmp] The Design of OpenMP Thread Affinity
@@ -919,12 +858,12 @@ Thanks to Christopher Di Bella, Toomas Remmelg, and Morris Hafner for their revi
 [lstopo]: https://www.open-mpi.org/projects/hwloc/lstopo/
 [[21]][lstopo] Portable Hardware Locality Istopo
 
-[p0443r7]:
-http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0443r7.html
-[[22]][p0443r7] A Unified Executors Proposal for C\+\+
+[p0443]:
+http://wg21.link/p0443
+[[22]][p0443] A Unified Executors Proposal for C\+\+
 
-[p0737r0]: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0737r0.html
-[[23]][p0737r0] P0737r0 : Execution Context of Execution Agents
+[p0737]: http://wg21.link/p0737
+[[23]][p0737] P0737 : Execution Context of Execution Agents
 
 [exposing-locality]: https://docs.google.com/viewer?a=v&pid=sites&srcid=bGJsLmdvdnxwYWRhbC13b3Jrc2hvcHxneDozOWE0MjZjOTMxOTk3NGU3
 [[24]][exposing-locality] Exposing the Locality of new Memory Hierarchies to HPC Applications
@@ -958,3 +897,9 @@ http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0443r7.html
 
 [intel-balanced-affinity]: https://software.intel.com/en-us/node/522518
 [[34]][intel-balanced-affinity] Balanced Affinity Type
+
+[p0796]: http://wg21.link/p0796
+[[35]][p0796] Supporting Heterogeneous & Distributed Computing Through Affinity
+
+[pXXXX]: http://wg21.link/pXXXX
+[[36]][pXXXX] ######
