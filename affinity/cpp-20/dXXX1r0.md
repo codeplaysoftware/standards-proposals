@@ -54,7 +54,7 @@
 
 # Abstract
 
-This paper is the result of a request from SG1 at the 2018 San Diego meeting to split P0796: Supporting Heterogeneous & Distributed Computing Through Affinity [[35]][p0796] into two separate papers, one for the high-level interface and one for the low-level interface. This paper focusses on the high-level interface; a series of properties for querying affinity relationships and requesting affinity on work being executed. [[36]][pXXXX] focusses on the low-level interface; a mechanism for discovering the topology and affinity properties of a given system.
+This paper is the result of a request from SG1 at the 2018 San Diego meeting to split P0796: Supporting Heterogeneous & Distributed Computing Through Affinity [[35]][p0796] into two separate papers, one for the high-level interface and one for the low-level interface. This paper focusses on the high-level interface: a series of properties for querying affinity relationships and requesting affinity on work being executed. [[36]][pXXXX] focusses on the low-level interface: a mechanism for discovering the topology and affinity properties of a given system.
 
 This paper provides an initial meta-framework for the drives toward an execution and memory affinity model for C\+\+.  It accounts for feedback from the Toronto 2017 SG1 meeting on Data Movement in C\+\+ [[1]][p0687r0] that we should define affinity for C\+\+ first, before considering inaccessible memory as a solution to the separate memory problem towards supporting heterogeneous and distributed computing.
 
@@ -75,7 +75,7 @@ The affinity problem is especially challenging for applications whose behavior c
 
 Frequently, data are initialized at the beginning of the program by the initial thread and are used by multiple threads. While some OSes automatically migrate threads or data for better affinity, migration may have high overhead. In an optimal case, the OS may automatically detect which thread access which data most frequently, or it may replicate data which are read by multiple threads, or migrate data which are modified and used by threads residing on remote locality groups. However, the OS often does a reasonable job, if the machine is not overloaded, if the application carefully uses first-touch allocation, and if the program does not change its behavior with respect to locality.
 
-Consider a code example *(Listing 1)* that uses the C\+\+17 parallel STL algorithm `for_each` to modify the entries of a `std::vector` `data`.  The example applies a loop body in a lambda to each entry of the `std::vector` `data`, using an execution policy that distributes work in parallel across multiple CPU cores. We might expect this to be fast, but since `std::vector` containers are initialized automatically and automatically allocated on the master thread's memory, we find that it is actually quite slow even when we have more than one thread.
+Consider a code example *(Listing 1)* that uses the C\+\+17 parallel STL algorithm `for_each` to modify the entries of an `std::vector` `data`.  The example applies a loop body in a lambda to each entry of the `std::vector` `data`, using an execution policy that distributes work in parallel across multiple CPU cores. We might expect this to be fast, but since `std::vector` containers are initialized automatically and automatically allocated on the master thread's memory, we find that it is actually quite slow even when we have more than one thread.
 
 ```cpp
 // NUMA executor representing N NUMA regions.
@@ -85,8 +85,8 @@ numa_executor exec;
 // of execution, (N == 0).
 std::vector<float> data(N * SIZE);
 
-// Require the NUMA executor to bind it's migration of memory to the underlying
-// memory resources in a scatter patter.
+// Require the NUMA executor to bind its migration of memory to the underlying
+// memory resources in a scatter pattern.s
 auto affinityExec = std::execution::require(exec,
   bulk_execution_affinity.scatter);
 
@@ -107,8 +107,8 @@ numa_executor exec;
 
 // Reserve space in a vector for a unique_ptr for each index in the bulk
 // execution.
-std::vector<std::unique_ptr<float>> data{};
-data.reserve(N * SIZE);
+std::vector<std::unique_ptr<float[SIZE]>> data{};
+data.reserve(N);
 
 // Require the NUMA executor to bind it's allocation of memory to the underlying
 // memory resources in a scatter patter.
@@ -118,10 +118,10 @@ auto affinityExec = std::execution::require(exec,
 // Launch a bulk execution that will allocate each unique_ptr in the vector with
 // locality to the nearest NUMA region.
 affinityExec.bulk_execute([&](size_t id) {
-  data[id] = std::make_unique<float>(0.0f); }, N * SIZE, sharedFactory);
+  data[id] = std::make_unique<float>(); }, N, sharedFactory);
 
 // Execute a for_each using the same executor so that each unique_ptr in the
-// vector mainains it's locality.
+// vector maintains it's locality.
 std::for_each(std::execution::par.on(affinityExec), std::begin(data),
   std::end(data), [=](float &value) { do_something(value): });
 ```
@@ -250,7 +250,7 @@ We propose an executor property group called `bulk_execution_affinity` which con
 
 ### Example
 
-Below *(Listing 2)* is an example of executing a parallel task over 8 threads using `bulk_execute`, with the affinity binding `bulk_execution_affinity.scatter`.
+Below is an example of executing a parallel task over 8 threads using `bulk_execute`, with the affinity binding `bulk_execution_affinity.scatter`.
 
 ```cpp
 {
@@ -264,7 +264,7 @@ Below *(Listing 2)* is an example of executing a parallel task over 8 threads us
   }, 8, sharedFactory);
 }
 ```
-*Listing 2: Example of using the bulk_execution_affinity property*
+*Listing 3: Example of using the bulk_execution_affinity property*
 
 ### Proposed Wording
 
@@ -273,19 +273,19 @@ The `bulk_execution_affinity_t` property is a behavioral property as defined in 
 The `bulk_execution_affinity_t` property provides nested property types and objects as described below, where:
 * `e` denotes an executor object of type `E`,
 * `f` denotes a function object of type `F&&`,
-* `s` denotes a shape object of type `execution::executor_shape<E>`,
+* `s` denotes a shape object of type `execution::executor_shape<E>`, and
 * `sf` denotes a function object of type `SF`.
 
 | Nested Property Type | Nested Property Name | Requirements |
 |----------------------|----------------------|--------------|
-| bulk_execution_affinity_t::none_t | bulk_execution_affinity_t::none | A call to `e.bulk_execute(f, s, sf)` may or may not bind the created *execution agents* to the underlying *execution resources*. The affinity binding pattern may or may not be consistent across invocations of the executor's bulk execution function.  |
-| bulk_execution_affinity_t::scatter_t | bulk_execution_scatter_t::scatter | A call to `e.bulk_execute(f, s, sf)` must bind the created *execution agents* to the underlying *execution resources* such that they are distributed across the *execution resources* where each *execution agent* far from it's preceding and following *execution agents*. The affinity binding pattern must be consistent across invocations of the executor's bulk execution function. |
-| bulk_execution_affinity_t::compact_t | bulk_execution_compact_t::compact | A call to `e.bulk_execute(f, s, sf)` must bind the created *execution agents* to the underlying *execution resources* such that they are in sequence across the *execution resources* where each *execution agent* close to it's preceding and following *execution agents*. The affinity binding pattern must be consistent across invocations of the executor's bulk execution function. |
-| bulk_execution_affinity_t::balanced_t | bulk_execution_balanced_t::balanced | A call to `e.bulk_execute(f, s, sf)` must bind the created *execution agents* to the underlying *execution resources* such that they are in sequence and evenly spread across the *execution resources* where each *execution agent* is close to it's preceding and following *execution agents* and all *execution resources* are utilized. The affinity binding pattern must be consistent across invocations of the executor's bulk execution function. |
+| `bulk_execution_affinity_t::none_t` | `bulk_execution_affinity_t::none` | A call to `e.bulk_execute(f, s, sf)` has no requirements on the binding of *execution agents* to the underlying *execution resources*. |
+| `bulk_execution_affinity_t::scatter_t` | `bulk_execution_scatter_t::scatter` | A call to `e.bulk_execute(f, s, sf)` must bind the created *execution agents* to the underlying *execution resources* such that they are distributed sparsely across the *execution resources*. The affinity binding pattern must be consistent across invocations of the executor's bulk execution function. |
+| `bulk_execution_affinity_t::compact_t` | `bulk_execution_compact_t::compact` | A call to `e.bulk_execute(f, s, sf)` must bind the created *execution agents* to the underlying *execution resources* such that they are distributed as close as possible to the *execution resource* of the *thread of execution* which created them. The affinity binding pattern must be consistent across invocations of the executor's bulk execution function. |
+| bulk_execution_affinity_t::balanced_t | bulk_execution_balanced_t::balanced | A call to `e.bulk_execute(f, s, sf)` must bind the created *execution agents* to the underlying *execution resources* such that they are collected into groups, each group is distributed sparsely across the *execution resources* and the *execution agents* within each group are  distributed as close as possible to the first *execution resource* of that group. The affinity binding pattern must be consistent across invocations of the executor's bulk execution function. |
 
 > [*Note:* The requirements of the `bulk_execution_affinity_t` nested properties do not enforce a specific binding, simply that the binding follows the requirements set out above and that the pattern is consistent across invocations of the bulk execution functions. *--end note*]
 
-> [*Note:* If two *executors* `e1` and `e2` invoke a bulk execution function in order, where `execution::query(e1, execution::context) == query(e2, execution::context)` is `true` and `execution::query(e1, execution::bulk_execution_affinity) == query(e2, execution::bulk_execution_affinity)` is `false`, this will likely result in `e1` binding *execution agents* if necessary to achieve the requested affinity pattern and then `e2` rebinding to achieve the new affinity pattern. *--end note*]
+> [*Note:* If two *executors* `e1` and `e2` invoke a bulk execution function in order, where `execution::query(e1, execution::context) == query(e2, execution::context)` is `true` and `execution::query(e1, execution::bulk_execution_affinity) == query(e2, execution::bulk_execution_affinity)` is `false`, this will likely result in `e1` binding *execution agents* if necessary to achieve the requested affinity pattern and then `e2` rebinding to achieve the new affinity pattern. Rebinding *execution agents* to *execution resources* may take substantial time and may affect performance of subsequent code. *--end note*]
 
 > [*Note:* The terms used for the `bulk_execution_affinity_t` nested properties are derived from the OpenMP properties [[33]][openmp-affinity] including the Intel specific balanced affinity binding [[[34]][intel-balanced-affinity] *--end note*]
 
@@ -400,7 +400,7 @@ The value returned from `execution::query(e1, memory_locality_intersection_t(e2)
 
 ## Who should have control over bulk execution affinity?
 
-This paper currently proposes the `bulk_execution_affinity_t` properties and it's nested properties for allowing an *executor* to make guarantees as to how *execution agents* are bound to the underlying *execution resources*. However providing control at this level may lead to *execution agents* being bound to *execution resources* within a critical path. A possible solution to this is to allow the *execution context* to be configured with `bulk_execution_affinity_t` nested properties, either instead of the *executor* property or in addition. This would allow the binding of *threads of execution* to be performed at the time of the *execution context* creation.
+This paper currently proposes the `bulk_execution_affinity_t` properties and its nested properties for allowing an *executor* to make guarantees as to how *execution agents* are bound to the underlying *execution resources*. However providing control at this level may lead to *execution agents* being bound to *execution resources* within a critical path. A possible solution to this is to allow the *execution context* to be configured with `bulk_execution_affinity_t` nested properties, either instead of the *executor* property or in addition. This would allow the binding of *threads of execution* to be performed at the time of the *execution context* creation.
 
 | Straw Poll |
 |------------|
