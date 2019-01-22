@@ -12,14 +12,14 @@
 
 ## Motivation
 
-OpenCL applications often build around a set of of fixed function operations which take OpenCL buffers in order to run a hard-coded OpenCL kernels. However, because SYCL does not allow a user to access cl_mem object out of an cl::sycl::accessor, it difficult/impossible to integrate such library into a SYCL application, as the only current way to do this is to create all OpenCL buffers up-front, which is not always possible.
+SYCL does not allow a user to access cl_mem object out of an cl::sycl::accessor, it difficult/impossible to integrate OpenCL library to use them as is inside the data-flow execution model of SYCL, as the only current way to do this is to create all OpenCL buffers up-front, which is not always possible.
 
 This proposal introduces a way for a user to retrieve the OpenCL buffer associate with a SYCL buffer and enqueue a host task that can execute an arbitrary portion of host code within the SYCL runtime, therefore taking advantage of SYCL dependency analysis and scheduling.
 
-## Enqueuing host tasks on SYCL queues
+## Accessing low-level API functionality on SYCL queues
 
 We introduce a new type of handler, the **codeplay::handler**, which includes a new
-**interop\_task** method that executes a task on the host.
+**interop\_task** method that enables submission of low-level API code from the host.
 By submitting this command group to the SYCL device queue, we guarantee it is
 executed in-order w.r.t the other command groups on the same queue.
 Simultaneously, we guarantee that this operation is performed
@@ -28,6 +28,7 @@ thread to continue submitting command groups).
 Other command groups enqueued in the same or different queues
 can be executed following the sequential consistency by guaranteeing the
 satisfaction of the requisites of this command group.
+It is the user's responsability to ensure the lambda submitted via interop_task does not create race conditions with other command groups or with the host.
 
 The possibility of enqueuing host tasks on SYCL queues also enables the
 runtime to perform further optimizations when available.
@@ -47,7 +48,7 @@ class handler : public cl::sycl::handler {
   handler(__unspecified__);
 
  public:
-  /* "Manually" enqueue a kernel */
+  /* Submit a task with interoperability statements. */
   template <typename FunctorT>
   void interop_task(FunctorT hostFunction);
 };
@@ -58,16 +59,17 @@ class handler : public cl::sycl::handler {
 
 ### codeplay::handler::interop_task
 
-The `interop_task` allow the user to execute a task of the native host.
-Unlike `single_task`, `parallel_for` and `parallel_for_work_group`, the `interop_task` do not enqueue a kernel on the device but allow the user to execute a custom action when the prerequisites are satisfied on the device associate with the queue.
-The functor passed to the `interop_task` takes as input a const reference to a `cl::sycl::codeplay::interop_handle` which can be used to retrieve underlying OpenCL objects relative to the execution of the task.
+The `interop_task` allows users to submit tasks containing C++ statements with low-level API call (e.g. OpenCL Host API entries).
+The command group that encapsulates the task will execute following the usual SYCL dataflow execution rules.
+The functor passed to the `interop_task` takes as input a const reference to a `cl::sycl::codeplay::interop_handle`. The handle can be used to retrieve underlying OpenCL objects relative to the execution of the task.
 
 It is not allowed to allocate new SYCL object inside an `interop_task`.
-It is the user responsibilities to ensure all asynchronous executions using SYCL provided resources finished before returning from the `interop_task`.
+It is the user responsibilities to ensure all operations peroformed inside the `interop_task` finished before returning from it.
 
-## Accessing Underlying OpenCL Object
+## Accessing low-level API objects
 
 We introduce the `interop_handle` class which provide access to underlying OpenCL objects during the execution of the `interop_task`.
+`interop_handle` objects are immutable objects whose purpose is to enable users access to low-level API functionality.
 
 The interface of the `interop_handle` is defined as follow:
 ```cpp
@@ -91,31 +93,30 @@ class interop_handle {
   cl_command_queue get_queue() const;
 
   /*
-    Returns the underlying cl_mem object associated with the accessor
+    Returns the underlying cl_mem object associated with a given accessor
   */
   template <typename dataT, int dimensions, access::mode accessmode,
             access::target accessTarget,
             access::placeholder isPlaceholder>
-  cl_mem get(const accessor<dataT, dimensions, accessmode, access::target accessTarget, access::placeholder isPlaceholder>&) const;
+  cl_mem get_buffer(const accessor<dataT, dimensions, accessmode, access::target accessTarget, access::placeholder isPlaceholder>&) const;
 };
 }  // namespace codeplay
 }  // namespace sycl
 }  // namespace cl
 ```
 
-`interop_handle` objects are immutable object whose purpose is to allow the user to access objects relevant to the context.
-
 ## Example using regular accessor
 
 ```cpp
     auto cgH = [=] (codeplay::handler& cgh) {
-      auto accA = bufA.get_access<access::mode::read>(cgh);  // Get device accessor to SYCL buffer (cannot be dereference directly in interop_task).
+      // Get device accessor to SYCL buffer (cannot be dereferenced directly in interop_task).
+      auto accA = bufA.get_access<access::mode::read>(cgh);
       auto accB = bufB.get_access<access::mode::read_write>(cgh);
 
       h.interop_task([=](codeplay::interop_handle &handle) {
         third_party_api(handle.get_queue(), // Get the OpenCL command queue to use, can be the fallback
-                        handle.get(accA), // Get the OpenCL mem object behind accA
-                        handle.get(accB)); // Get the OpenCL mem object behind accB
+                        handle.get_buffer(accA), // Get the OpenCL mem object behind accA
+                        handle.get_buffer(accB)); // Get the OpenCL mem object behind accB
         // Assumes call has finish when exiting the task
       });
     };
