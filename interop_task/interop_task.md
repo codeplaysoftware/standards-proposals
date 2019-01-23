@@ -2,7 +2,7 @@
 |-------------|--------|
 | Name |  |
 | Date of Creation | 16 January 2019 |
-| Target | SYCL 1.2.1 extension |
+| Target | Vendor extension |
 | Current Status | _Work in progress_ |
 | Reply-to | Victor Lomüller <victor@codeplay.com> |
 | Original author | Victor Lomüller <victor@codeplay.com>, Gordon Brown <gordon@codeplay.com>, Peter Zuzek <peter@codeplay.com> |
@@ -12,9 +12,9 @@
 
 ## Motivation
 
-SYCL does not allow a user to access cl_mem object out of an cl::sycl::accessor, it difficult/impossible to integrate OpenCL library to use them as is inside the data-flow execution model of SYCL, as the only current way to do this is to create all OpenCL buffers up-front, which is not always possible.
+SYCL does not allow a user to access cl_mem object out of an cl::sycl::accessor, it is difficult to integrate low-level API functionality inside the data-flow execution model of SYCL, as the only current way to do this is to create all OpenCL buffers up-front, which is not always possible.
 
-This proposal introduces a way for a user to retrieve the OpenCL buffer associate with a SYCL buffer and enqueue a host task that can execute an arbitrary portion of host code within the SYCL runtime, therefore taking advantage of SYCL dependency analysis and scheduling.
+This proposal introduces a way for a user to retrieve the low-level objects associated with SYCL buffers and enqueue a host task that can execute an arbitrary portion of host code within the SYCL runtime, therefore taking advantage of SYCL dependency analysis and scheduling.
 
 ## Accessing low-level API functionality on SYCL queues
 
@@ -65,6 +65,10 @@ The functor passed to the `interop_task` takes as input a const reference to a `
 
 It is not allowed to allocate new SYCL object inside an `interop_task`.
 It is the user responsibilities to ensure all operations peroformed inside the `interop_task` finished before returning from it.
+
+Although the statements inside the lambda submitted to the `interop_task` are executed on the host, the requirements and actions for the command group are satisied for the device.
+This is the opposite of the `host_handler` vendor extension, where requisites are satisfied for the host since the statements on the lambda submited to the single task are meant to have side effects on the host only.
+The interop task lambda can have side effects on the host, but it is the programmer responsability to ensure requirements dont need to be satisfied for the host.
 
 ## Accessing low-level API objects
 
