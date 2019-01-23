@@ -126,3 +126,63 @@ class interop_handle {
     };
     qA.submit(cgH);
 ```
+
+This example calls the clFFT library from SYCL using the `interop_task`:
+```cpp
+#include <stdlib.h>
+#include <CL/sycl.hpp>
+
+/* No need to explicitely include the OpenCL headers */
+#include <clFFT.h>
+
+int main( void )
+{
+  size_t N = 16;
+
+  cl::sycl::queue device_queue;
+  cl::sycl::buffer<float> X(range<1>(N * 2));
+
+  /* Setup clFFT. */
+  clfftSetupData fftSetup;
+  err = clfftInitSetupData(&fftSetup);
+  err = clfftSetup(&fftSetup);
+
+  device_queue.submit([=](codeplay::handler& cgh) {
+    auto X_accessor = X.get_access<access::mode::read_write>(cgh);
+    h.interop_task([=](codeplay::interop_handle &handle) {
+      /* FFT library realted declarations */
+      clfftPlanHandle planHandle;
+      size_t clLengths[1] = {N};
+
+      /* Create a default plan for a complex FFT. */
+      err = clfftCreateDefaultPlan(&planHandle, handle.get_context(), CLFFT_1D, clLengths);
+
+      /* Set plan parameters. */
+      err = clfftSetPlanPrecision(planHandle, CLFFT_SINGLE);
+      err = clfftSetLayout(planHandle, CLFFT_COMPLEX_INTERLEAVED, CLFFT_COMPLEX_INTERLEAVED);
+      err = clfftSetResultLocation(planHandle, CLFFT_INPLACE);
+
+      /* Bake the plan. */
+      err = clfftBakePlan(planHandle, 1, &queue, NULL, NULL);
+
+      /* Execute the plan. */
+      cl_command_queue queue = handle.get_queue();
+      cl_mem X_mem = handle.get_buffer(X_accessor);
+      err = clfftEnqueueTransform(planHandle, CLFFT_FORWARD,
+                                  1, &queue, 0, NULL, NULL,
+                                  &X_mem, NULL, NULL);
+
+      /* Wait for calculations to be finished. */
+      err = clFinish(queue);
+
+      /* Release the plan. */
+      err = clfftDestroyPlan( &planHandle );
+    });
+  });
+
+  /* Release clFFT library. */
+  clfftTeardown( );
+
+  return 0;
+}
+```
