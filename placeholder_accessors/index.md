@@ -9,7 +9,7 @@
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 | Requirements | CP001 |
-| Contributors | Gordon Brown <gordon@codeplay.com>, Victor Lomuller <victor@codeplay.com>, Mehdi Goli <mehdi.goli@codeplay.com>, Peter Zuzek <peter@codeplay.com>, Luke Iwanski <luke@codeplay.com> |
+| Contributors | Gordon Brown <gordon@codeplay.com>, Victor Lomuller <victor@codeplay.com>, Mehdi Goli <mehdi.goli@codeplay.com>, Peter Žužek <peter@codeplay.com>, Luke Iwanski <luke@codeplay.com>, Michael Haidl <michael.haidl@uni-muenster.de> |
 
 ## Overview
 
@@ -172,7 +172,8 @@ except for the aforementioned modifications.
 
 ### When `is_placeholder` returns true
 
-The accessor API features constructors that don't take the handler parameter.
+The accessor API features constructors that don't take the handler parameter
+and/or memory object as a constructor.
 
 In addition, a new method to obtain a normal accessor from the placeholder
 accessor is provided.
@@ -191,6 +192,51 @@ The handler gains a new method,
 `handler::require(accessor<T, dim, mode, target, acess::placeholder::true_t>)`
 that registers the requirements of the placeholder accessor on the given
 command group.
+
+### Placeholder `accessor` without a buffer
+
+Not providing either the handler or the memory object
+makes the accessor default constructible,
+creating a "null" accessor.
+A null accessor can be bound to a buffer
+by constructing a new placeholder accessor with the buffer
+and assigning it to the null accessor.
+Example:
+
+```cpp
+accessor<T, dim, mode, target, access::placeholer::true_t> acc0;
+
+acc0 = accessor<T, dim, mode, target, access::placeholer::true_t>(buf);
+```
+
+To simplify placeholder accessor construction,
+a new free function `cl::sycl::codeplay::make_placeholder_accessor` is provided,
+which takes a buffer as an argument:
+
+```cpp
+template <access::mode mode, access::target target, typename T, int dim,
+          typename AllocatorT>
+accessor<T, dim, mode, target, access::placeholder::true_t>
+make_placeholder_accessor(buffer<T, dim, AllocatorT>& bufferRef);
+```
+
+A null accessor does not need to be registered with the command group,
+i.e. there is no need to call `require()` on it.
+It is allowed to pass a null accessor to a kernel,
+as long as it's not dereferenced inside the kernel,
+otherwise there an out-of-bounds access will occur,
+likely leading to a segmentation fault or similar.
+If the null accessor has been bound to a buffer,
+it is no longer a null accessor,
+which means it has to be registered with the command group
+and can be dereferenced inside the kernel.
+
+An accessor can be checked for the existence of an associated buffer
+by calling the member function `is_null`.
+
+|Member function      |Description                                              |
+|---------------------|---------------------------------------------------------|
+|bool is_null() const |Returns true if the accessor is associated with a buffer, false otherwise.|
 
 
 [1]: https://github.com/codeplaysoftware/sycl-blas "SYCL-BLAS"
