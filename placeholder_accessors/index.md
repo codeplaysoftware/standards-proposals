@@ -224,7 +224,7 @@ A null accessor does not need to be registered with the command group,
 i.e. there is no need to call `require()` on it.
 It is allowed to pass a null accessor to a kernel,
 as long as it's not dereferenced inside the kernel,
-otherwise there an out-of-bounds access will occur,
+otherwise an out-of-bounds access will occur,
 likely leading to a segmentation fault or similar.
 If the null accessor has been bound to a buffer,
 it is no longer a null accessor,
@@ -236,7 +236,7 @@ by calling the member function `is_null`.
 
 |Member function      |Description                                              |
 |---------------------|---------------------------------------------------------|
-|bool is_null() const |Returns true if the accessor is associated with a buffer, false otherwise.|
+|bool is_null() const |Returns false if the accessor is associated with a buffer, true otherwise.|
 
 
 [1]: https://github.com/codeplaysoftware/sycl-blas "SYCL-BLAS"
