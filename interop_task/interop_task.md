@@ -28,12 +28,12 @@ thread to continue submitting command groups).
 Other command groups enqueued in the same or different queues
 can be executed following the sequential consistency by guaranteeing the
 satisfaction of the requisites of this command group.
-It is the user's responsability to ensure the lambda submitted via interop_task does not create race conditions with other command groups or with the host.
+It is the user's responsibility to ensure the lambda submitted via interop_task does not create race conditions with other command groups or with the host.
 
 The possibility of enqueuing host tasks on SYCL queues also enables the
 runtime to perform further optimizations when available.
-For example, a SYCL runtime may decide to map / unmap instead of copy operations,
-or performing asynchronous transfers while data is being computed.
+For example, a SYCL runtime may decide to map / unmap instead of performing copy operations,
+or perform asynchronous transfers while data is being computed.
 
 ### cl::sycl::codeplay::handler
 
@@ -59,12 +59,12 @@ class handler : public cl::sycl::handler {
 
 ### codeplay::handler::interop_task
 
-The `interop_task` allows users to submit tasks containing C++ statements with low-level API call (e.g. OpenCL Host API entries).
+The `interop_task` allows users to submit tasks containing C++ statements with low-level API calls (e.g. OpenCL Host API entries).
 The command group that encapsulates the task will execute following the usual SYCL dataflow execution rules.
 The functor passed to the `interop_task` takes as input a const reference to a `cl::sycl::codeplay::interop_handle`. The handle can be used to retrieve underlying OpenCL objects relative to the execution of the task.
 
 It is not allowed to allocate new SYCL object inside an `interop_task`.
-It is the user responsibilities to ensure all operations peroformed inside the `interop_task` finished before returning from it.
+It is the user's responsibility to ensure that all operations performed inside the `interop_task` are finished before returning from it.
 
 Although the statements inside the lambda submitted to the `interop_task` are executed on the host, the requirements and actions for the command group are satisied for the device.
 This is the opposite of the `host_handler` vendor extension, where requisites are satisfied for the host since the statements on the lambda submited to the single task are meant to have side effects on the host only.
@@ -132,7 +132,7 @@ This example calls the clFFT library from SYCL using the `interop_task`:
 #include <stdlib.h>
 #include <CL/sycl.hpp>
 
-/* No need to explicitely include the OpenCL headers */
+/* No need to explicitly include the OpenCL headers */
 #include <clFFT.h>
 
 int main( void )
@@ -150,7 +150,7 @@ int main( void )
   device_queue.submit([=](codeplay::handler& cgh) {
     auto X_accessor = X.get_access<access::mode::read_write>(cgh);
     h.interop_task([=](codeplay::interop_handle &handle) {
-      /* FFT library realted declarations */
+      /* FFT library related declarations */
       clfftPlanHandle planHandle;
       size_t clLengths[1] = {N};
 
@@ -172,7 +172,7 @@ int main( void )
                                   1, &queue, 0, NULL, NULL,
                                   &X_mem, NULL, NULL);
 
-      /* Wait for calculations to be finished. */
+      /* Wait for calculations to finish. */
       err = clFinish(queue);
 
       /* Release the plan. */
