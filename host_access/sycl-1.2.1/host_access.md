@@ -1,11 +1,12 @@
-# Temporary buffer
+# Restricting host access to SYCL buffers
 
 | Proposal ID | CP017 |
 |-------------|--------|
 | Name | Host access |
 | Date of Creation | 17 September 2017 |
 | Target | SYCL 1.2.1 vendor extension |
-| Current Status | _Work In Progress_ |
+| Current Status | _Implemented_ |
+| Available | Since ComputeCpp 1.0.3 CE |
 | Reply-to | Ruyman Reyes <ruyman@codeplay.com> |
 | Original author | Ruyman Reyes <ruyman@codeplay.com> |
 
@@ -81,7 +82,8 @@ std::for_each(sycl_named_policy<example>(otherQueue),
  * performed.
  */
 buffer<float, 1> tmp{myRange, 
-                    {property::buffer::context_bound(deviceContext), codeplay::property::buffer::host_access(host_access_mode::none)} };
+                    {property::buffer::context_bound(deviceContext), 
+                    codeplay::property::buffer::host_access(host_access_mode::none)} };
 
 bool firstIter = true;
 

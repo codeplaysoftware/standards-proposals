@@ -53,5 +53,7 @@ Each proposal in the table below will be tagged with one of the following states
 | CP012 | [Data Movement in C++](data-movement/index.md) | ISO C++ SG1, SG14 | 30 May 2017 | 28 August 2017 | _Work in Progress_ |
 | CP013 | [Executor properties for affinity-based execution <br> System topology discovery for heterogeneous & distributed computing](affinity/index.md) | ISO C++ SG1, SG14, LEWG | 15 November 2017 | 12 January 2019 | _Work in Progress_ |
 | CP014 | [Shared Virtual Memory](svm/index.md) | SYCL 2.2 | 22 January 2018 | 22 January 2018 | _Work in Progress_ |
-| CP015 | [Specialization Constant](spec-constant/index.md) | SYCL 1.2.1 extension / SYCL 2.2 | 24 April 2018 | 24 April 2018 | _Work in Progress_ |
-| CP019 | [On-chip Memory Allocation](onchip-memory/index.md) | SYCL 1.2.1 extension / SYCL 2.2 | 03 December 2018 | 03 December 2018 | _Work in Progress_ |
+| CP015 | [Specialization Constant](spec-constant/index.md) | SYCL 1.2.1 extension | 24 April 2018 | 24 April 2018 | _Work in Progress_ |
+| CP017 | [Host Access](host_access/index.md) | SYCL 1.2.1 vendor extension | 17 September 2018 | 13 December 2018 |  _Available since CE 1.0.3_ | 
+| CP018 | [Built-in kernels](builtin_kernels/index.md) | SYCL 1.2.1 vendor extension | 12 October 2018 | 12 October 2018 | _Available since CE 1.0.3_ | 
+| CP019 | [On-chip Memory Allocation](onchip-memory/index.md) | SYCL 1.2.1 vendor extension  | 03 December 2018 | 03 December 2018 | _Available since CE 1.0.3_ |

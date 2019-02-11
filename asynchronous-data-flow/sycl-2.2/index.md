@@ -43,7 +43,7 @@ This proposal aims to
 contribute the following to the SYCL 2.2 specification:
 
 1. [A description of the expected behaviour of a SYCL program in terms of data dependencies between command groups](01_command_group_requirements_and_actions.md)
-2. [How the definition of accessors affects the synchronization of the program](02_memory_consistency.md)
+2. [How the definition of accessors affects the synchronization of the program](02_memory_consistence.md)
 3. [Additional functionality to interact with data on the host](03_interacting_with_data_on_the_host.md)
 4. [Extending the buffer/image interface to provide hints to the runtime](04_update_on_specific_context.md)
 
