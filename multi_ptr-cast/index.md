@@ -4,11 +4,11 @@
 |-------------|--------|
 | Name | Casting multi_ptr pointers |
 | Date of Creation | 19 December 2018 |
-| Target | SYCL 1.2.1 |
+| Target | SYCL 1.2.1 vendor extension |
 | Current Status | _Work in Progress_ |
 | Reply-to | Peter Žužek <peter@codeplay.com> |
 | Original author | Peter Žužek <peter@codeplay.com> |
-| Contributors | |
+| Contributors | Ruyman Reyes <ruyman@codeplay.com> |
 
 ## Overview
 

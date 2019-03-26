@@ -112,6 +112,7 @@ we propose adding the following free functions to the `cl::sycl` namespace:
 ```cpp
 namespace cl {
 namespace sycl {
+namespace codeplay {
 
 // Performs a static_cast of the contained pointer
 template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
@@ -133,6 +134,7 @@ template <typename ElementTypeU, typename ElementTypeT, access::address_space Sp
 multi_ptr<ElementTypeU, Space>
   reinterpret_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr);
 
+} // namespace codeplay
 } // namespace sycl
 } // namespace cl
 ```
@@ -142,7 +144,7 @@ In the table below, each function has the following template parameters:
 template <typename ElementTypeU, typename ElementTypeT, access::address_space Space>
 ```
 
-| Member function | Description |
+| Function | Description |
 |-----------------|-------------|
 | *`multi_ptr<ElementTypeU, Space> static_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `static_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `static_cast` from `ElementType*` to `ElementTypeU*` is valid. |
 | *`multi_ptr<ElementTypeU, Space> dynamic_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `dynamic_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `dynamic_cast` from `ElementType*` to `ElementTypeU*` is valid. |
@@ -170,10 +172,11 @@ class vec {
 ### Simple casts
 
 These examples focus on `global_ptr` for brevity,
-but it works the same for all `multi_ptr` types.
+but the same operation is valid on any other `multi_ptr` type.
 
 ```cpp
 using namespace cl::sycl;
+using namespace codeplay;
 const global_ptr<int> ptrInt = get_some_global_ptr<int>();
 
 // Conversion operator
@@ -209,6 +212,7 @@ struct Derived : public Base {
 };
 
 using namespace cl::sycl;
+using namespace codeplay;
 const global_ptr<Base> ptrBase = get_some_global_ptr<int>();
 
 auto ptrDerived = dynamic_pointer_cast<Derived>(ptrBase);
@@ -219,6 +223,7 @@ auto ptrBase1 = dynamic_pointer_cast<Base>(ptrDerived);
 
 ```cpp
 using namespace cl::sycl;
+using namespace codeplay;
 
 template <typename ElementType, access::address_space Space>
 void function_taking_ptr(const multi_ptr<ElementType, Space>& ptr);
