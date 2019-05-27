@@ -1,4 +1,4 @@
-# P1436: Executor properties for affinity-based execution
+# P1436 & P1437: Papers for affinity-based execution
 
 |   |   |
 |---|---|
