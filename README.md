@@ -57,3 +57,4 @@ Each proposal in the table below will be tagged with one of the following states
 | CP017 | [Host Access](host_access/index.md) | SYCL 1.2.1 vendor extension | 17 September 2018 | 13 December 2018 |  _Available since CE 1.0.3_ | 
 | CP018 | [Built-in kernels](builtin_kernels/index.md) | SYCL 1.2.1 vendor extension | 12 October 2018 | 12 October 2018 | _Available since CE 1.0.3_ | 
 | CP019 | [On-chip Memory Allocation](onchip-memory/index.md) | SYCL 1.2.1 vendor extension  | 03 December 2018 | 03 December 2018 | _Available since CE 1.0.3_ |
+| CP020 | [Default-Constructed Buffers](default-constructed-buffers/default-constructed-buffers.md) | SYCL 1.2.1 | 27 August 2019 | 5 September 2019 | _Draft_ |

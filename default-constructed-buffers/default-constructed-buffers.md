@@ -4,10 +4,10 @@ Proposal ID      | TBC
 ---------------- | ---------------------------
 Name             | Default-constructed Buffers
 Date of Creation | 2019-08-20
-Target           |
-Status           | WIP
+Target           | SYCL 1.2.1
+Status           | _Draft_
 Author           | Duncan McBain [Duncan McBain](mailto:duncan@codeplay.com)
-Contributors     |
+Contributors     | Duncan McBain, [Gordon Brown](mailto:gordon@codeplay.com)
 
 ## Description
 
@@ -55,8 +55,16 @@ rebound to a new `buffer` instance later using the copy constructor.
 
 The `is_valid()` call would allow the programmer to query whether or not
 the buffer can be used, i.e. whether or not it was constructed with a range of
-size zero. The operator would call this same function but allow its use in
-if statements.
+size zero. The explicit conversion operator would call this same function but
+allow its use in `if` statements.
+
+Requesting access from a default-constructed buffer should throw an exception.
+It is not meaningful to use a zero-sized allocation on-device. Since there is
+no allocation associated with the `buffer`, `cl::sycl::buffer::set_final_data`
+and `cl::sycl::buffer::set_write_back` should behave as if the `buffer` had a
+final pointer of `nullptr` at all times. The other functions in the `buffer`
+API should behave as though the buffer were constructed with a `range` of size
+zero and otherwise behave normally.
 
 ## Sample code
 
