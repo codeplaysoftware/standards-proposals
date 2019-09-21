@@ -42,32 +42,11 @@ in order to make the casting safer and easier to use.
 
 ## Summary
 
-This proposal folds the `void` specialization of the `multi_ptr` class
-into the main definition of `multi_ptr<ElementType, Space>`,
-handles the cases where `ElementType` is a `const`-qualified type,
-adds a few explicit conversion operators
+This proposal adds a few explicit conversion operators
 as member functions of the `multi_ptr` class,
 and also adds several free functions to the `cl::sycl` namespace
 that follow the naming and semantics of the `std::shared_ptr` pointer cast functions
 defined by the C++17 standard: https://en.cppreference.com/w/cpp/memory/shared_ptr/pointer_cast.
-
-## Specializations for void and const void
-
-In SYCL 1.2.1, the `void` specialization of the `multi_ptr` class
-is separate from the main definition
-because it cannot contain any reference types.
-For the purpose of the specification,
-we propose folding the two definitions
-into a single definition of the `multi_ptr` class,
-with comments denoting which types are available
-only if `ElementType` is not `void` or `const void`.
-The main reason for this simplification
-is the introduction of the specialization for `const void`,
-which would require the specification to define another specialization
-that would be mostly the same as the specialization for `void`.
-Simplifying the definiton like this
-also covers the case where `ElementType` is not `void` or `const void`,
-but some other `const`-qualified type.
 
 ## Explicit conversion operators
 
@@ -150,22 +129,6 @@ template <typename ElementTypeU, typename ElementTypeT, access::address_space Sp
 | *`multi_ptr<ElementTypeU, Space> dynamic_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `dynamic_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `dynamic_cast` from `ElementType*` to `ElementTypeU*` is valid. |
 | *`multi_ptr<ElementTypeU, Space> const_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `const_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `const_cast` from `ElementType*` to `ElementTypeU*` is valid. |
 | *`multi_ptr<ElementTypeU, Space> reinterpret_pointer_cast(const multi_ptr<ElementTypeT, Space>& multiPtr)`* | Performs a `reinterpret_cast` of the underlying pointer `ElementTypeT*` contained within `multiPtr` to `ElementTypeU*` and returns a new `multi_ptr` instance containing the cast pointer. The address space stays the same. This conversion is only valid if the `reinterpret_cast` from `ElementType*` to `ElementTypeU*` is valid. |
-
-## Add `const` to existing functions taking a `multi_ptr`
-
-For the class `vec`,
-use a const-qualified `multi_ptr` for the `load` member function:
-
-```cpp
-template <typename dataT, int numElements>
-class vec {
- public:
-  /// Existing members
-
-  template <access::address_space addressSpace>
-  void load(size_t offset, multi_ptr<const dataT, addressSpace> ptr);
-};
-```
 
 ## Examples
 
