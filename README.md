@@ -36,6 +36,9 @@ Each proposal in the table below will be tagged with one of the following states
 * _Final Draft_ : The proposal is a draft submitted to the relevant standards body, and only minor changes are expected.
 * _Published_ : The proposal is finished and no more work is expected.
 * _Accepted_, _Accepted with changes_ or _Partially accepted_ : Accepted on the standard version indicated as target. Refer to that standard document from now on for the latest status of the feature.
+* _Dropped_ : The proposal has been dropped in some stage, either replaced by other proposal or because
+it was no longer of interest. No further updates are expected on the proposal text, and may be eliminated
+from this registry in the future.
 
 ## Current list of proposals and status
 
@@ -57,4 +60,5 @@ Each proposal in the table below will be tagged with one of the following states
 | CP017 | [Host Access](host_access/index.md) | SYCL 1.2.1 vendor extension | 17 September 2018 | 13 December 2018 |  _Available since CE 1.0.3_ | 
 | CP018 | [Built-in kernels](builtin_kernels/index.md) | SYCL 1.2.1 vendor extension | 12 October 2018 | 12 October 2018 | _Available since CE 1.0.3_ | 
 | CP019 | [On-chip Memory Allocation](onchip-memory/index.md) | SYCL 1.2.1 vendor extension  | 03 December 2018 | 03 December 2018 | _Available since CE 1.0.3_ |
+| CP020 | [Interop Task](interop_task/interop_task.md) | SYCL 1.2.1 | 16 January 2019 | 16 January 2019 | _Available since CE 1.0.5_ |
 | CP021 | [Default-Constructed Buffers](default-constructed-buffers/default-constructed-buffers.md) | SYCL 1.2.1 | 27 August 2019 | 5 September 2019 | _Draft_ |
