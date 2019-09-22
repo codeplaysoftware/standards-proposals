@@ -141,24 +141,30 @@ using namespace cl::sycl;
 const global_ptr<int> ptrInt = get_some_global_ptr<int>();
 
 // Conversion operator
-auto ptrFloat1 = static_cast<global_ptr<float>>(ptrInt);
 auto ptrVoid1 = static_cast<global_ptr<void>>(ptrInt);
 auto ptrConstInt1 = static_cast<global_ptr<const int>>(ptrInt);
 
 // static_pointer_cast
-auto ptrFloat2 = static_pointer_cast<float>(ptrInt);
-auto ptrVoid2 = static_pointer_cast<void>(ptrInt);
-auto ptrConstInt2 = static_pointer_cast<const int>(ptrInt);
+global_ptr<void> ptrVoid2 =
+  static_pointer_cast<void>(ptrInt);
+global_ptr<const int> ptrConstInt2 =
+  static_pointer_cast<const int>(ptrInt);
 
 // const_pointer_cast
-auto ptrConstInt3 = const_pointer_cast<const int>(ptrInt);
-// auto ptrIntStripConst = static_cast<global_ptr<int>>(ptrConstInt1); // illegal
-auto ptrIntStripConst = const_pointer_cast<int>(ptrConstInt1);
+global_ptr<const int> ptrConstInt3 =
+  const_pointer_cast<const int>(ptrInt);
+// global_ptr<int> ptrIntStripConst =
+//   static_cast<global_ptr<int>>(ptrConstInt1); // illegal
+global_ptr<int> ptrIntStripConst =
+  const_pointer_cast<int>(ptrConstInt1);
 
 // reinterpret_pointer_cast
-auto ptrFloat4 = reinterpret_pointer_cast<float>(ptrInt);
-auto ptrVoid4 = reinterpret_pointer_cast<void>(ptrInt);
-auto ptrConstInt4 = reinterpret_pointer_cast<const int>(ptrInt);
+global_ptr<float> ptrFloat4 =
+  reinterpret_pointer_cast<float>(ptrInt);
+global_ptr<void> ptrVoid4 =
+  reinterpret_pointer_cast<void>(ptrInt);
+global_ptr<const int> ptrConstInt4 =
+  reinterpret_pointer_cast<const int>(ptrInt);
 ```
 
 ### `dynamic_pointer_cast`
@@ -173,7 +179,7 @@ struct Derived : public Base {
 };
 
 using namespace cl::sycl;
-const global_ptr<Base> ptrBase = get_some_global_ptr<int>();
+const global_ptr<Base> ptrBase = get_some_global_ptr<Base>();
 
 auto ptrDerived = dynamic_pointer_cast<Derived>(ptrBase);
 auto ptrBase1 = dynamic_pointer_cast<Base>(ptrDerived);
