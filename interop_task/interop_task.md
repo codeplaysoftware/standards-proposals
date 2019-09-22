@@ -1,9 +1,9 @@
-| Proposal ID | TBC |
+| Proposal ID | CP021 |
 |-------------|--------|
-| Name |  |
+| Name | Interop Task |
 | Date of Creation | 16 January 2019 |
 | Target | Vendor extension |
-| Current Status | _Work in progress_ |
+| Current Status | _Availalable since CE 1.0.5_ |
 | Reply-to | Victor Lomüller <victor@codeplay.com> |
 | Original author | Victor Lomüller <victor@codeplay.com>, Gordon Brown <gordon@codeplay.com>, Peter Zuzek <peter@codeplay.com> |
 | Contributors | Victor Lomüller <victor@codeplay.com>, Gordon Brown <gordon@codeplay.com>, Peter Zuzek <peter@codeplay.com> |
