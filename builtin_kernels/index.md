@@ -1,4 +1,4 @@
-# Host Access to SYCL buffers
+# Builtin kernels
 
 | Proposal ID | CP018 |
 |-------------|--------|
