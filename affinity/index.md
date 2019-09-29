@@ -51,7 +51,7 @@ This paper is the result of a request from SG1 at the 2018 San Diego meeting to 
 
 [p1436r0]: https://wg21.link/p1436r0
 [p1436r1]: https://wg21.link/p1436r1
-[d1436-latest]: /cpp-23/d1436r2.md
+[d1436-latest]: affinity/cpp-23/d1436r2.md
 
 [p1795r0]: https://wg21.link/p1437r0
-[d1795-latest]: /cpp-23/d1795r1.md
+[d1795-latest]: affinity/cpp-23/d1795r1.md
