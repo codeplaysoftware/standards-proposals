@@ -1,4 +1,4 @@
-# P1436 & P1437: Papers for affinity-based execution
+# P1436 & P1795: Papers for affinity-based execution
 
 |   |   |
 |---|---|
@@ -32,14 +32,14 @@ This paper is the result of a request from SG1 at the 2018 San Diego meeting to 
 |---------|--------|
 | [P1436r0][p1436r0] | _Published_ |
 | [P1436r1][p1436r1] | _Published_ |
-| [P1436r2][p1436-latest] | _Work_in_progress_ |
+| [D1436r2][d1436-latest] | _Work_in_progress_ |
 
-### P1437: System topology discovery for heterogeneous & distributed computing
+### P1795: System topology discovery for heterogeneous & distributed computing
 
 | Version | Status |
 |---------|--------|
-| [P1437r0][p1437r0] | _Published_ |
-| [P1437r1][p1437-latest] | _Work_in_progress_ |
+| [P1795r0][p1795r0] | _Published_ |
+| [D1437r1][d1795-latest] | _Work_in_progress_ |
 
 [p0796]: https://wg21.link/p0796
 [p1436]: https://wg21.link/p1436
@@ -51,7 +51,7 @@ This paper is the result of a request from SG1 at the 2018 San Diego meeting to 
 
 [p1436r0]: https://wg21.link/p1436r0
 [p1436r1]: https://wg21.link/p1436r1
-[p1436-latest]: /cpp-23/d1436r2.md
+[d1436-latest]: cpp-23/d1436r2.md
 
-[p1437r0]: https://wg21.link/p1437r0
-[p1437-latest]: /cpp-23/d1795r1.md
+[p1795r0]: https://wg21.link/p1795r0
+[d1795-latest]: cpp-23/d1795r1.md
