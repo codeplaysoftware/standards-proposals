@@ -7,7 +7,7 @@ Date of Creation | 2019-08-20
 Target           | SYCL 1.2.1
 Status           | _Draft_
 Author           | Duncan McBain [Duncan McBain](mailto:duncan@codeplay.com)
-Contributors     | Duncan McBain, [Gordon Brown](mailto:gordon@codeplay.com)
+Contributors     | Duncan McBain, [Gordon Brown](mailto:gordon@codeplay.com), [Ruyman Reyes](mailto:ruyman@codeplay.com)
 
 ## Description
 
@@ -34,7 +34,8 @@ aid their use in this style of generic interface.
 ## Proposal
 
 The `cl::sycl::buffer` class should be augmented with an additional constructor
-that takes no arguments, which initialises the buffer with a zero-size range.
+that takes no arguments, which default-constructs the buffer in an
+implementation-defined manner.
 ```c++
 namespace cl {
 namespace sycl {
@@ -43,7 +44,7 @@ typename AllocatorT = cl::sycl::buffer_allocator>
 class buffer {
   buffer();
 
-  bool is_valid() const noexcept;
+  bool has_storage() const noexcept;
 
   explicit operator bool() const noexcept;
 };
@@ -53,18 +54,21 @@ class buffer {
 The template arguments should remain the same, so that the argument can be
 rebound to a new `buffer` instance later using the copy constructor.
 
-The `is_valid()` call would allow the programmer to query whether or not
-the buffer can be used, i.e. whether or not it was constructed with a range of
-size zero. The explicit conversion operator would call this same function but
-allow its use in `if` statements.
+The `has_storage()` call would allow the programmer to query whether or not
+the buffer can be used, i.e. whether or not it was default-constructed. The
+explicit conversion operator would call this same function but allow its use
+in `if` statements.
 
 Requesting access from a default-constructed buffer should throw an exception.
-It is not meaningful to use a zero-sized allocation on-device. Since there is
-no allocation associated with the `buffer`, `cl::sycl::buffer::set_final_data`
-and `cl::sycl::buffer::set_write_back` should behave as if the `buffer` had a
-final pointer of `nullptr` at all times. The other functions in the `buffer`
-API should behave as though the buffer were constructed with a `range` of size
-zero and otherwise behave normally.
+It is not meaningful to use a default-constructed buffer on-device. Since there
+is no allocation associated with a default-constructed `buffer`,
+`cl::sycl::buffer::set_final_data` and `cl::sycl::buffer::set_write_back`
+should behave as if the `buffer` had a final pointer of `nullptr` at all times.
+The other functions in the `buffer` API should behave as though the buffer were
+constructed with a `range` of size zero and otherwise behave normally.
+
+Explicitly constructing a buffer with a range of zero is not allowed. This does
+not correspond to a valid device allocation.
 
 ## Sample code
 
