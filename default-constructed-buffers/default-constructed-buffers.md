@@ -60,7 +60,7 @@ explicit conversion operator would call this same function but allow its use
 in `if` statements.
 
 Requesting access from a default-constructed buffer should throw an exception.
-It is not meaningful to use a default-constructed buffer on-device. Since there
+It is not meaningful to use a default-constructed buffer on device. Since there
 is no allocation associated with a default-constructed `buffer`,
 `cl::sycl::buffer::set_final_data` and `cl::sycl::buffer::set_write_back`
 should behave as if the `buffer` had a final pointer of `nullptr` at all times.
