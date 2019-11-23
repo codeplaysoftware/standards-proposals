@@ -54,7 +54,7 @@ from this registry in the future.
 | CP009 | [Async Work Group Copy & Prefetch Builtins](async-work-group-copy/index.md) | SYCL 1.2.1 | 07 August 2017 | 07 August 2017 | _Accepted with changes_ |
 | CP011 | [Mem Fence Builtins](mem-fence/index.md) | SYCL 1.2.1 | 11 August 2017 | 9 September 2017 | _Accepted_ |
 | CP012 | [Data Movement in C++](data-movement/index.md) | ISO C++ SG1, SG14 | 30 May 2017 | 28 August 2017 | _Work in Progress_ |
-| CP013 | [P1436 & P1795: Papers for affinity-based execution](affinity/index.md) | ISO C++ SG1, SG14, LEWG | 15 November 2017 | 17 June 2019 | _Published_ |
+| CP013 | [P1436 & P1795: Papers for affinity-based execution](affinity/index.md) | ISO C++ SG1, SG14, LEWG | 15 November 2017 | 23 November 2019 | _Published_ |
 | CP014 | [Shared Virtual Memory](svm/index.md) | SYCL 2.2 | 22 January 2018 | 22 January 2018 | _Work in Progress_ |
 | CP015 | [Specialization Constant](spec-constant/index.md) | SYCL 1.2.1 extension | 24 April 2018 | 24 April 2018 | _Work in Progress_ |
 | CP017 | [Host Access](host_access/index.md) | SYCL 1.2.1 vendor extension | 17 September 2018 | 13 December 2018 |  _Available since CE 1.0.3_ | 

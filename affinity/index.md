@@ -1,15 +1,14 @@
-# P1436 & P1795: Papers for affinity-based execution
+# P1436 & P1795: Papers for heterogeneous and distributed computing in C++
 
 |   |   |
 |---|---|
 | ID | CP013 |
-| Name | Executor properties for affinity-based execution <br> System topology discovery for heterogeneous & distributed computing |
-| Target | ISO C++ SG1, SG14, LEWG |
+| Name | P1436: Executor properties for affinity-based execution <br> P1795: System topology discovery for heterogeneous & distributed computing |
+| Target | ISO C++ SG1, SG14 |
 | Initial creation | 15 November 2017 |
-| Last update | 31 March 2019 |
+| Last update | 23 November 2019 |
 | Reply-to | Gordon Brown <gordon@codeplay.com> |
-| Original author | Gordon Brown <gordon@codeplay.com> |
-| Contributors | Ruyman Reyes <ruyman@codeplay.com>, Michael Wong <michael.wong@codeplay.com>, H. Carter Edwards <hcedwar@sandia.gov>, Thomas Rodgers <rodgert@twrodgers.com>, Mark Hoemmen <mhoemme@sandia.gov>, Jeff Hammond <jeff.science@gmail.com>, Tom Scogland <tscogland@llnl.gov> |
+| Authors | Gordon Brown <gordon@codeplay.com>, Ruyman Reyes <ruyman@codeplay.com>, Michael Wong <michael.wong@codeplay.com>, H. Carter Edwards <hcedwar@sandia.gov>, Thomas Rodgers <rodgert@twrodgers.com>, Mark Hoemmen <mhoemme@sandia.gov>, Jeff Hammond <jeff.science@gmail.com>, Tom Scogland <tscogland@llnl.gov> |
 
 ## Overview
 
@@ -32,14 +31,16 @@ This paper is the result of a request from SG1 at the 2018 San Diego meeting to 
 |---------|--------|
 | [P1436r0][p1436r0] | _Published_ |
 | [P1436r1][p1436r1] | _Published_ |
-| [D1436r2][d1436-latest] | _Work_in_progress_ |
+| [P1436r2][p1436r2] | _Published_ |
+| [D1436r3][d1436-latest] | _Work_in_progress_ |
 
 ### P1795: System topology discovery for heterogeneous & distributed computing
 
 | Version | Status |
 |---------|--------|
 | [P1795r0][p1795r0] | _Published_ |
-| [D1437r1][d1795-latest] | _Work_in_progress_ |
+| [P1795r1][p1795r1] | _Published_ |
+| [D1437r2][d1795-latest] | _Work_in_progress_ |
 
 [p0796]: https://wg21.link/p0796
 [p1436]: https://wg21.link/p1436
@@ -51,7 +52,9 @@ This paper is the result of a request from SG1 at the 2018 San Diego meeting to 
 
 [p1436r0]: https://wg21.link/p1436r0
 [p1436r1]: https://wg21.link/p1436r1
+[p1436r2]: https://wg21.link/p1436r2
 [d1436-latest]: cpp-23/d1436r2.md
 
 [p1795r0]: https://wg21.link/p1795r0
+[p1795r1]: https://wg21.link/p1795r1
 [d1795-latest]: cpp-23/d1795r1.md
