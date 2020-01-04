@@ -6,7 +6,7 @@
 | Name | P1436: Executor properties for affinity-based execution <br> P1795: System topology discovery for heterogeneous & distributed computing |
 | Target | ISO C++ SG1, SG14 |
 | Initial creation | 15 November 2017 |
-| Last update | 23 November 2019 |
+| Last update | 04 January 2020 |
 | Reply-to | Gordon Brown <gordon@codeplay.com> |
 | Authors | Gordon Brown <gordon@codeplay.com>, Ruyman Reyes <ruyman@codeplay.com>, Michael Wong <michael.wong@codeplay.com>, H. Carter Edwards <hcedwar@sandia.gov>, Thomas Rodgers <rodgert@twrodgers.com>, Mark Hoemmen <mhoemme@sandia.gov>, Jeff Hammond <jeff.science@gmail.com>, Tom Scogland <tscogland@llnl.gov> |
 
