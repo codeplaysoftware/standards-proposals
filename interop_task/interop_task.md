@@ -1,13 +1,17 @@
-| Proposal ID | CP021 |
+| Proposal ID | CP020 |
 |-------------|--------|
 | Name | Interop Task |
 | Date of Creation | 16 January 2019 |
 | Revision | 0.2 | 
 | Target | Vendor extension |
-| Current Status | 0.1 _Availalable since CE 1.0.5_, 0.2 TBD  |
+| Current Status | 0.1 _Availalable since CE 1.0.5_ | 
 | Reply-to | Victor Lomüller <victor@codeplay.com> |
 | Original author | Victor Lomüller <victor@codeplay.com>, Gordon Brown <gordon@codeplay.com>, Peter Zuzek <peter@codeplay.com> |
 | Contributors | Victor Lomüller <victor@codeplay.com>, Gordon Brown <gordon@codeplay.com>, Peter Zuzek <peter@codeplay.com>, Ruyman Reyes <ruyman@codeplay.com> |
+
+**Note: This extension will be superseeded with 
+[CP022](host_task/host_task) in upcoming releases. 
+The current extension will be maintained for backwards compatibility.**
 
 # interop_task: Improving SYCL-OpenCL Interoperability
 

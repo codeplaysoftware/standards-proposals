@@ -62,3 +62,4 @@ from this registry in the future.
 | CP019 | [On-chip Memory Allocation](onchip-memory/index.md) | SYCL 1.2.1 vendor extension  | 03 December 2018 | 03 December 2018 | _Available since CE 1.0.3_ |
 | CP020 | [Interop Task](interop_task/interop_task.md) | SYCL 1.2.1 | 16 January 2019 | 16 January 2019 | _Available since CE 1.0.5_ |
 | CP021 | [Default-Constructed Buffers](default-constructed-buffers/default-constructed-buffers.md) | SYCL 1.2.1 | 27 August 2019 | 5 September 2019 | _Draft_ |
+| CP022 | [Host Task with Interop capabilities](host_task/host_task) | SYCL 1.2.1 | 16 January 2019 | 20 January 2020 | _Final Draft_ |
