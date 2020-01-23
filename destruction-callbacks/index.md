@@ -183,15 +183,16 @@ namespace sycl {
 | Member function | Description |
 |-------------|--------|
 | `template<typename F = std::nullptr_t> void set_destruction_callback(F&& callback = nullptr);` | Registers a callable object, `callback`, with the context. The callable object will be invoked once *immediately before* the native context is destroyed. `F` must be a callable type with the signature `void(const sycl::context&)`. It must be well-formed for a `sycl::context` destructor to call the callback using the form `callback(*this);`. Only one callback may be registered - subsequent calls to this member function will overwrite the previously registered callback. If `F` is `std::nullptr_t`, no callback is registered and any previous callback is destroyed. It is undefined behavior if an instance of any SYCL class with reference semantics (see 4.6.2) is stored in a function object, or captured in the closure of a lambda that is used as a callback.
-<center>Table 4.15: Member functions of the context class</center>
 
-##References
+Table 4.15: Member functions of the context class
 
-[1] JuliaGPU: https://github.com/JuliaGPU/CuArrays.jl/blob/4dedd0fadcf260cf008a9e73d8702e2f259b2cfc/src/blas/CUBLAS.jl#L30
-[2] Intel ISAAC: https://github.com/intel/isaac/blob/b0a265ee45337f92f1e8e9f2fb08a057292b0240/lib/driver/dispatch.cpp#L223
-[3] ISAAC: https://github.com/ptillet/isaac/blob/8ea6498a841fe1e63a4518797d332f538a9ba37e/lib/driver/dispatch.cpp#L216
-[4] ND4J: https://github.com/deeplearning4j/nd4j/blob/8f005bcecb240d1fbb83b9d390ad801d1d3b6933/nd4j-backends/nd4j-backend-impls/nd4j-cuda/src/main/java/org/nd4j/jita/allocator/context/impl/BasicContextPool.java#L43
-[5] GADGETRON: https://github.com/gadgetron/gadgetron/blob/fa39a340558a032bea10db07af00fbe6da5ff4cb/toolboxes/core/gpu/CUBLASContextProvider.cpp#L35
-[6] ArrayFire: http://arrayfire.org/docs/group__opencl__mat.htm#ga37969cfa49416bbdb25910d15c454d01
-[7] OpenVX: https://www.khronos.org/registry/OpenVX/extensions/vx_khr_opencl_interop/1.0/vx_khr_opencl_interop_1_0.html#_vxcreatecontextfromcl
-[8] DNNL: https://github.com/intel/mkl-dnn/blob/master/doc/advanced/opencl_interoperability.md#c-api-extensions-for-interoperability-with-opencl-1
+## References
+
+[1] JuliaGPU: https://github.com/JuliaGPU/CuArrays.jl/blob/4dedd0fadcf260cf008a9e73d8702e2f259b2cfc/src/blas/CUBLAS.jl#L30<br/>
+[2] Intel ISAAC: https://github.com/intel/isaac/blob/b0a265ee45337f92f1e8e9f2fb08a057292b0240/lib/driver/dispatch.cpp#L223<br/>
+[3] ISAAC: https://github.com/ptillet/isaac/blob/8ea6498a841fe1e63a4518797d332f538a9ba37e/lib/driver/dispatch.cpp#L216<br/>
+[4] ND4J: https://github.com/deeplearning4j/nd4j/blob/8f005bcecb240d1fbb83b9d390ad801d1d3b6933/nd4j-backends/nd4j-backend-impls/nd4j-cuda/src/main/java/org/nd4j/jita/allocator/context/impl/BasicContextPool.java#L43<br/>
+[5] GADGETRON: https://github.com/gadgetron/gadgetron/blob/fa39a340558a032bea10db07af00fbe6da5ff4cb/toolboxes/core/gpu/CUBLASContextProvider.cpp#L35<br/>
+[6] ArrayFire: http://arrayfire.org/docs/group__opencl__mat.htm#ga37969cfa49416bbdb25910d15c454d01<br/>
+[7] OpenVX: https://www.khronos.org/registry/OpenVX/extensions/vx_khr_opencl_interop/1.0/vx_khr_opencl_interop_1_0.html#_vxcreatecontextfromcl<br/>
+[8] DNNL: https://github.com/intel/mkl-dnn/blob/master/doc/advanced/opencl_interoperability.md#c-api-extensions-for-interoperability-with-opencl-1<br/>
