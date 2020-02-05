@@ -1,6 +1,6 @@
 | Proposal ID | CP023 |
 |-------------|--------|
-| Name | SYCL Context Destruction Callback |
+| Name | SYCL Extended Context Destruction |
 | Date of Creation | 23 January 2020 |
 | Target | SYCL Next |
 | Current Status | _Work in progress_ |
@@ -8,7 +8,7 @@
 | Original author | Stuart Adams <stuart.adams@codeplay.com> |
 | Contributors | Stuart Adams <stuart.adams@codeplay.com> |
 
-# SYCL Context Destruction Callback
+# SYCL Extended Context Destruction
 
 ## Motivation
 
@@ -24,15 +24,17 @@ Several problems can arise upon the destruction of the application's `sycl::cont
 All native handles that were related to the context are invalidated, and the application 
 must release any resources it has allocated to store them. Further issues can arise if 
 the native handles exhibit different behavior than their SYCL counterparts, for instance, 
-if a native context is thread-bound or globally accessible. While it is possible to write an 
-ad-hoc solution, the SYCL standard does not mandate when a `sycl::context` is 
+if a native context is thread-bound or globally accessible. While it is possible 
+to write an ad-hoc solution, the SYCL standard does not mandate when a `sycl::context` is 
 destroyed, making it difficult to implement a solution that works across different SYCL 
 implementations.
 
 This proposal suggests that the `sycl::context` class be extended. A new member 
-function, `set_destruction_callback` is described. Developers will use this function to 
-register a callback, allowing them to respond to the destruction of the context in a way 
-that is appropriate for their application.
+function, `set_extended_deleter` is described. Developers will use this function 
+to register an *extended deleter* with the `sycl::context` object. When the context's
+destructor is called, the extended deleter will be called prior to the destruction 
+of the native context. This will allow developers to respond to the destruction 
+of the native context in a way that is appropriate for their application.
 
 ## Examples
 
@@ -120,7 +122,8 @@ in a surprising number of libraries.
 In a SYCL application, the developer cannot reliably know when the SYCL runtime will
 destroy a context and invalidate the handles. Ideally, all the resources and handles 
 reliant on a `sycl::context` object should be destroyed once its destructor is called. 
-To achieve this, the class must be extended to allow developers to register a callback.
+To achieve this, the class must be extended to allow developers to register a callable 
+object.
 
 ```cpp
 int main() {
@@ -131,7 +134,7 @@ int main() {
     sycl::queue queue(selector);
     sycl::context context = queue.get_context();
 
-    context.set_destruction_callback([](const sycl::context& this_context) {
+    context.set_extended_deleter([](const sycl::context& this_context) {
       CUcontext context = get_native<sycl::backend::cuda>(this_context);
       handle_map::destroy_lib_handle(context);
     });
@@ -148,7 +151,7 @@ automatically when its destructor is called.
 
 Similar problems exist in other libraries and APIs in the heterogeneous programming
 ecosystem, requiring the user to explicitly release handles that have been passed to 
-an existing library. The ```set_destruction_callback``` function will also be useful in these cases.
+an existing library. The `set_extended_deleter` function will also be useful in these cases.
 
 ### ArrayFire
 The ArrayFire GPGPU library provides functions to enable the use of user-defined OpenCL 
@@ -175,14 +178,14 @@ namespace sycl {
   class context {
   public:
     template<typename F = std::nullptr_t>
-    void set_destruction_callback(F&& callback = nullptr);
+    void set_extended_deleter(F&& func = nullptr);
   };
 }
 ```
 
 | Member function | Description |
 |-------------|--------|
-| `template<typename F = std::nullptr_t> void set_destruction_callback(F&& callback = nullptr);` | Registers a callable object, `callback`, with the context. The callable object will be invoked once *immediately before* the native context is destroyed. `F` must be a callable type with the signature `void(const sycl::context&)`. It must be well-formed for a `sycl::context` destructor to call the callback using the form `callback(*this);`. Only one callback may be registered - subsequent calls to this member function will overwrite the previously registered callback. If `F` is `std::nullptr_t`, no callback is registered and any previous callback is destroyed. It is undefined behavior if an instance of any SYCL class with reference semantics (see 4.6.2) is stored in a function object, or captured in the closure of a lambda that is used as a callback.
+| `template<typename F = std::nullptr_t> void set_extended_deleter(F&& func = nullptr);` | Registers a callable object, `func`, with the context. The callable object will be invoked once *immediately before* the native context is destroyed. `F` must be a callable type with the signature `void(const sycl::context&)`. It must be well-formed for a `sycl::context` destructor to invoke the callable using the form `func(*this);`. The callable object is guaranteed to be invoked on the same thread that invoked the `sycl::context` object's destructor. Only one extended deleter may be registered - subsequent calls to this member function will overwrite the previously registered extended deleter. If `F` is `std::nullptr_t`, no extended deleter is registered and any previous extended deleter is destroyed. It is undefined behavior if an instance of any SYCL class with reference semantics (see 4.6.2) is stored in a function object, or captured in the closure of a lambda that is used as an extended deleter.
 
 Table 4.15: Member functions of the context class
 
