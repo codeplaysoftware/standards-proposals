@@ -49,8 +49,7 @@ public:
   T get_specialization_constant();
 
   template<auto& s>
-  typename std::remove_reference_t<decltype(s)>::type
-    get_specialization_constant(const specialization_constant<typename std::remove_reference_t<decltype(s)>::type, s>&);
+  typename std::remove_reference_t<decltype(s)>::type get_specialization_constant();
 
 };
 }
