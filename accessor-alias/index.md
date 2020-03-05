@@ -4,7 +4,9 @@
 |-------------|--------|
 | Name | Accessor aliases |
 | Date of Creation | 22 September 2019 |
-| Target | SYCL 1.2.1 vendor extension |
+| Revision | 0.2 |
+| Latest Update | 31 March 2020 |
+| Target | SYCL Next (after 1.2.1) |
 | Current Status | _Work in Progress_ |
 | Reply-to | Peter Žužek <peter@codeplay.com> |
 | Original author | Peter Žužek <peter@codeplay.com> |
@@ -17,4 +19,4 @@ in order to reduce accessor verbosity.
 
 ## Versions
 
-[Version 1](sycl-2.2/index.md)
+[Revision 0.2](sycl-2.2/index.md)
