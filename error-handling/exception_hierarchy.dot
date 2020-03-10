@@ -1,0 +1,19 @@
+digraph G {
+    rankdir = RL;
+    node [shape=rect, fontsize = 10, fixedsize=true, width=1.8];
+
+	runtime_error -> exception;
+	kernel_error -> runtime_error;
+	accessor_error -> runtime_error;
+	nd_range_error -> runtime_error;
+	event_error -> runtime_error;
+	invalid_parameter_error -> runtime_error;
+	device_error -> exception;
+	compile_program_error -> device_error;
+	link_program_error -> device_error;
+	invalid_object_error -> device_error;
+	memory_allocation_error -> device_error;
+	platform_error -> device_error;
+	profiling_error -> device_error;
+	feature_not_supported -> device_error;
+}

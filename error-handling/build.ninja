@@ -1,0 +1,10 @@
+rule markdown
+  command = pandoc $in -o $out
+
+rule dot
+  command = dot -Tsvg $in -o $out
+
+build exception_hierarchy.svg: dot exception_hierarchy.dot
+build sycl-error-handling.html: markdown sycl-error-handling.md || exception_hierarchy.svg
+
+default sycl-error-handling.html
