@@ -4,8 +4,8 @@
 |-------------|--------|
 | Name | Default placeholders |
 | Date of Creation | 9 March 2019 |
-| Revision | 0.1 |
-| Latest Update | 9 March 2020 |
+| Revision | 0.2 |
+| Latest Update | 17 March 2020 |
 | Target | SYCL Next (after 1.2.1) |
 | Current Status | _Work in Progress_ |
 | Reply-to | Peter Žužek <peter@codeplay.com> |
@@ -48,7 +48,7 @@ but hasn't been registered with a command group
 is more like a fancy pointer:
 the user doesn't own the data
 until the accessor is registered and used in a kernel,
-where is becomes more similar to a regular pointer.
+where it becomes more similar to a regular pointer.
 
 Having this type separation between full accessors and placeholders
 might be useful from a type safety perspective,
@@ -123,10 +123,42 @@ class handler {
 };
 ```
 
+`handler::require` has to be called on a placeholder accessor
+in order to register it with the command group submission.
+It is valid to call the function more than once,
+even on non-placeholder accessors.
+Calling the function on a null accessor throws `cl::sycl::invalid_object_error`.
+
 ### Deprecate `is_placeholder`
 
 The function `accessor::is_placeholder` doesn't make sense anymore,
 we propose deprecating it.
+
+### Allow constructing host accessors from placeholders
+
+Consider the following example:
+
+```cpp
+template<typename AccTypeA, typename AccTypeB>
+void some_library_function(AccTypeA accA, AccTypeB accB) {
+  ...
+  myQueue.submit([&](handler &cgh) {
+    cgh.require(accA);
+    cgh.require(accB);
+    cgh.copy(accA, accB);
+  });
+  ...
+  // We want to be able to access host data now
+}
+```
+
+`some_library_function` in the example takes in two placeholder accessors
+and performs a copy from one to another.
+However, there is no way any of the data associated with the accessors
+can be accessed on the host.
+The placeholders are not bound to a command group anyway,
+so we believe it should be possible to explicitly construct a host accessor
+from a placeholder accessor.
 
 ### New constructors
 
@@ -144,6 +176,17 @@ to allow placeholder construction.
    normally an accessor constructor requires a buffer and a handler,
    we propose making the handler optional.
    This is the same constructor currently allowed for host buffers.
+1. Construct a host accessor from a placeholder one (`placeholderAcc`).
+   Not valid to call in kernel code.
+   Throws `cl::sycl::runtime_error` when called
+   if `placeholderAcc.has_handler() == true`.
+   Requesting host access is a synchronization point,
+   and host accessors act as locks,
+   meaning that the placeholder cannot be used
+   while the host accessor is in scope.
+   Even after host access is released,
+   the programmer is required to call `require` again on the placeholder
+   before it can be used in a kernel.
 
 ```cpp
 template <typename dataT,
@@ -162,19 +205,29 @@ class accessor {
   
   // 2
   // Only available when: ((accessTarget == access::target::global_buffer) ||
-  //                       (accessTarget == access::target::constant_buffer) ||
-  //                       (accessTarget == access::target::host_buffer)) &&
+  //                       (accessTarget == access::target::constant_buffer)) &&
   //                      (dimensions == 0)
   accessor(buffer<dataT, 1> &bufferRef);
 
   // 3
   // Only available when: ((accessTarget == access::target::global_buffer) ||
-  //                       (accessTarget == access::target::constant_buffer) ||
-  //                       (accessTarget == access::target::host_buffer)) &&
+  //                       (accessTarget == access::target::constant_buffer)) &&
   //                      (dimensions > 0)
   accessor(buffer<dataT, dimensions> &bufferRef,
            range<dimensions> accessRange,
            id<dimensions> accessOffset = {});
+
+  // 4
+  // Only available when (accessTarget == access::target::host_buffer) &&
+  //                     ((otherTarget == access::target::global_buffer) ||
+  //                      (otherTarget == access::target::constant_buffer))
+  template <access::target otherTarget, access::placeholder otherPlaceholder>
+  accessor(accessor<dataT,
+                    dimensions,
+                    accessMode,
+                    otherTarget,
+                    otherPlaceholder>&
+            placeholderAcc);
 };
 ```
 
@@ -186,10 +239,16 @@ we propose new member functions to the `accessor class`:
 1. `is_null` - returns `true` if the accessor has been default constructed,
    which is only possible with placeholders.
    Not having an associated buffer is analogous to a null pointer.
+   Available in both application code and kernel code,
+   it is valid to pass a null accessor to a kernel.
 1. `has_handler` - returns `true` if the accessor is associated
    with a command group `handler`.
    Will only be `false` with host accessors and placeholder accessors.
    This replaces the `is_placeholder` member function.
+   Mainly meant as a way to enquire about whether this is a placeholder or not,
+   this doesn't have to be checked before `require` is called.
+1. `get_host_access` - constructs a host accessor from a placeholder accessor.
+   Not valid to call in kernel code.
 
 ```cpp
 template <typename dataT,
@@ -206,6 +265,16 @@ class accessor {
   
   // 2
   bool has_handler() const noexcept;
+
+  // 3
+  // Only available when ((accessTarget == access::target::global_buffer) ||
+  //                      (accessTarget == access::target::constant_buffer))
+  accessor<dataT,
+           dimensions,
+           accessMode,
+           access::target::host_buffer,
+           access::placeholder::false_t>
+  get_host_access() const;
 };
 ```
 
@@ -256,7 +325,6 @@ myQueue.submit([&](handler &cgh) {
 });
 
 // Submit kernel that writes to output buffer
-// Use constant buffer accessors
 buffer<int> bufC{bufRange};
 accC = read_acc{bufC};
 myQueue.submit([&](handler &cgh) {
