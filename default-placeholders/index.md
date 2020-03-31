@@ -129,6 +129,9 @@ It is valid to call the function more than once,
 even on non-placeholder accessors.
 Calling the function on a null accessor throws `cl::sycl::invalid_object_error`.
 
+Note that `handler::require` does not attach a handler to an accessor,
+which means it doesn't change the outcome of `accessor::has_handler`.
+
 ### Deprecate `is_placeholder`
 
 The function `accessor::is_placeholder` doesn't make sense anymore,
@@ -243,12 +246,13 @@ we propose new member functions to the `accessor class`:
    Not having an associated buffer is analogous to a null pointer.
    Available in both application code and kernel code,
    it is valid to pass a null accessor to a kernel.
-1. `has_handler` - returns `true` if the accessor is associated
+1. `has_handler` - returns `true` if the accessor was constructed
    with a command group `handler`.
    Will only be `false` with host accessors and placeholder accessors.
    This replaces the `is_placeholder` member function.
    Mainly meant as a way to enquire about whether this is a placeholder or not,
    this doesn't have to be checked before `require` is called.
+   Calling `require` does not change the result of `has_handler`.
 1. `get_host_access` - constructs a host accessor from a placeholder accessor.
    Not valid to call in kernel code.
 
