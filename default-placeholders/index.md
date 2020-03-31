@@ -5,7 +5,7 @@
 | Name | Default placeholders |
 | Date of Creation | 9 March 2019 |
 | Revision | 0.2 |
-| Latest Update | 17 March 2020 |
+| Latest Update | 31 March 2020 |
 | Target | SYCL Next (after 1.2.1) |
 | Current Status | _Work in Progress_ |
 | Reply-to | Peter Žužek <peter@codeplay.com> |
@@ -207,6 +207,7 @@ class accessor {
   // Only available when: ((accessTarget == access::target::global_buffer) ||
   //                       (accessTarget == access::target::constant_buffer)) &&
   //                      (dimensions == 0)
+  explicit
   accessor(buffer<dataT, 1> &bufferRef);
 
   // 3
@@ -222,6 +223,7 @@ class accessor {
   //                     ((otherTarget == access::target::global_buffer) ||
   //                      (otherTarget == access::target::constant_buffer))
   template <access::target otherTarget, access::placeholder otherPlaceholder>
+  explicit
   accessor(accessor<dataT,
                     dimensions,
                     accessMode,

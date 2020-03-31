@@ -63,5 +63,5 @@ from this registry in the future.
 | CP020 | [Interop Task](interop_task/interop_task.md) | SYCL 1.2.1 | 16 January 2019 | 16 January 2019 | _Available since CE 1.0.5_ |
 | CP021 | [Default-Constructed Buffers](default-constructed-buffers/default-constructed-buffers.md) | SYCL 1.2.1 | 27 August 2019 | 5 September 2019 | _Draft_ |
 | CP022 | [Host Task with Interop capabilities](host_task/host_task.md) | SYCL 1.2.1 | 16 January 2019 | 20 January 2020 | _Final Draft_ |
-| CP024 | [Default placeholder](default-placeholders/index.md) | SYCL Next (after 1.2.1) | 9 March 2020 | 17 March 2020 | _Work in Progress_ |
+| CP024 | [Default placeholder](default-placeholders/index.md) | SYCL Next (after 1.2.1) | 9 March 2020 | 31 March 2020 | _Work in Progress_ |
 | CP026 | [Generalized Error Handling For SYCL](error-handling/sycl-error-handling.md) | SYCL Next | 10 March 2020 | 10 March 2020 | _Under Review_ |
