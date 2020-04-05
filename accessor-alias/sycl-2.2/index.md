@@ -45,6 +45,20 @@ local_accessor<int>
 
 ## Revisions
 
+### 0.3
+
+* Support CTAD a lot better, including in examples
+* Consider compile-time and run-time properties
+* Added deduction tags
+  * Considered compile-time properties
+  * `read_only_tag` deduces `const T` and `access::mode::read`
+  * `constant_access_tag` deduces accessor to constant memory
+* Added `property::discard`
+* `handler::require` doesn't take extra template parameter anymore,
+  instead it can accept `property::discard` as an argument
+* Made `host_accessor` a separate type
+* Use `empty()` instead of `is_null()`
+
 ### 0.2
 
 * Simplified handling of non-writeable accessors
@@ -75,11 +89,15 @@ Main points of the proposal:
     * `read` and `read_write` most important
     * Allow `const T` to denote read-only data access
     * Deprecate `access::mode::atomic`
+1. [Introduce deduction tags](#deduction-tags)
+1. [Extend properties](#extending-properties)
 1. [Introduce `access::target`-specific aliases for accessors](#aliases)
 1. [Extending `handler::require`](#extending-the-handler)
 
 The proposal slightly changes the semantics of accessing data,
 but still aims to be completely backwards compatible with SYCL 1.2.1.
+There is a lot of focus on CTAD which is a C++17 feature,
+but the proposal can still work with C++11 if CTAD is ignored.
 
 Note that this proposal assumes that any accessor can be a placeholder,
 essentially deprecating the `access::placeholder` template parameter.
@@ -231,7 +249,7 @@ In order to simplify user code,
 we propose allowing certain implicit conversions
 that don't modify scheduling information.
 
-In standard C++ code, adding `const` qualifiers is almost always allowed.
+In standard C++ code, adding the `const` qualifier is almost always allowed.
 In SYCL, going from a `read_write` accessor to a `read` accessor
 is analogous to adding the `const` qualifier.
 This allows us to have the following rules regarding `const`:
@@ -320,14 +338,136 @@ q.submit([&](handler& cgh){
 });
 ```
 
-## Aliases
+## Deduction tags
 
-With all of the above changes and simplifications applied,
-we propose adding the following alias templates:
+In order to better enable CTAD,
+we propose the following deduction tags:
 
 ```cpp
 namespace cl {
 namespace sycl {
+
+struct read_only_tag {};
+struct constant_access_tag {};
+
+} // namespace sycl
+} // namespace cl
+```
+
+`read_only_tag` can be used to aid deduction guides
+in deducing read-only access to an accessor:
+it deduces the accessor to `const dataT` data type and `access::mode::read`.
+
+`constant_access_tag` can be used to aid deduction guides
+in deducing access to constant buffer memory:
+it deduces the accessor to `const dataT` data type,
+`access::mode::read`,
+and `access::target::constant_buffer`.
+It can be used in conjunction with `read_only_tag`.
+
+When used in a non-CTAD context,
+deduction tags have no effect,
+but the implementation must reject code
+that would lead to incompatible accessor types.
+
+## Extending properties
+
+### Compile-time properties
+
+SYCL 1.2.1 already supports passing run-time properties to accessors
+(see https://github.com/KhronosGroup/SYCL-Docs/pull/73).
+
+Consider the following SYCL 1.2.1 constructor
+for `accessor<dataT, dims, accMode, access::target::global_buffer>`:
+
+```cpp
+accessor(buffer<dataT, dims>&, handler&, property_list = {});
+```
+
+It is possible to construct an object of `property_list`
+with accessor specific properties and pass it to the accessor constructor.
+
+We propose treating deduction tags as compile-time properties.
+Compile-time properties are not passed to `property_list` -
+that class still encapsulates run-time properties.
+Instead, compile-time properties need to help deduction guides,
+which requires changing all accessor constructors
+to variadic templates.
+The example constructor above would thus become:
+
+```cpp
+template <class... PropertyTs>
+accessor(buffer<dataT, dims>&, handler&, PropertyTs...);
+```
+
+Passing compile-time properties to `property_list` has no effect
+and they can be ignored, unless specified otherwise.
+But this variadic constructor allows us to pass in deduction tags to guide CTAD.
+The following would be valid:
+
+```cpp
+// Assume buffer `buf<dataT, dims>`
+// Assume command group handler `cgh`
+// Assume property_list `propList`
+accessor acc{buf, cgh, read_only_tag{}, constant_access_tag{}, propList};
+static_assert(std::is_same_v<
+  decltype(acc),
+  accessor<const dataT,
+           dims,
+           access::mode::read,
+           access::target::constant_buffer>>);
+```
+
+This example also demonstrates the only allowed order of all arguments:
+deduction tags come after the main arguments,
+and before the run-time `property_list`.
+However, any property can be omitted.
+
+> Note that `read_only_tag` is not required
+> when `constant_access_tag` is specified.
+
+### Discard property
+
+We propose a new run-time property that can be passed to accessor constructors
+inside `property_list`:
+
+```cpp
+namespace cl {
+namespace sycl {
+namespace property {
+
+struct discard {};
+__unspecified__ constexpr auto discard_v = discard{};
+
+} // namespace property
+} // namespace sycl
+} // namespace cl
+```
+
+This property is a signal to the scheduler
+that the previous data should be ignored.
+
+## Aliases
+
+With all of the above changes and simplifications applied,
+we propose adding the following new classes and alias templates:
+
+```cpp
+namespace cl {
+namespace sycl {
+
+template <class dataT,
+          int dims = 1,
+          access::mode accMode = access::mode::read_write>
+class host_accessor :
+  public accessor<dataT, dims, accMode, access::target::host_buffer> {
+ public:
+  /// Constructors
+  ...
+
+  /// Implicit conversions
+  ...
+};
 
 template <class dataT, int dims = 1>
 using constant_buffer_accessor =
@@ -336,25 +476,18 @@ using constant_buffer_accessor =
              access::mode::read,
              access::target::constant_buffer>;
 
-template <class dataT,
-          int dims = 1,
-          access::mode accMode = access::mode::read_write>
-using host_accessor =
-    accessor<dataT,
-             dims,
-             accMode,
-             access::target::host_buffer>;
-
 } // namespace sycl
 } // namespace cl
 ```
+
+`host_accessor` is a new type because it allows the use of CTAD.
+Its base type is `accessor<dataT, dims, accMode, access::target::host_buffer>`.
+`host_accessor` is implicitly convertible to and from the base type.
 
 `constant_buffer_accessor` is very similar to `local_accessor`
 in that it can only have one access mode.
 It is allowed to use both `const dataT` and `dataT` as the data type,
 the read-only access mode ensures data cannot be written to.
-
-The `host_accessor` alias is similar to the regular global buffer accessor.
 
 ## Extending the handler
 
@@ -368,7 +501,7 @@ before they are registered with a command group.
 To resolve this, we propose the following extensions to `handler::require`:
 
 * Allow it to be called on any non-host-mode accessor
-* Add an overload that takes an access mode as a template parameter
+* Add an overload that takes `property::discard` as an argument
 * Return the accessor instance that was passed in
 
 See [Calling require](#calling-require) for an example.
@@ -385,17 +518,6 @@ class handler {
   /// New functions
 
   // Registers an accessor with a command group submission
-  // `requestedMode` can be used to weaken the access mode
-  template <access::mode requestedMode,
-            class T,
-            int dims,
-            access::mode mode,
-            access::target target,
-            access::placeholder isPlaceholder>
-  accessor<T, dims, mode, target, isPlaceholder>
-  require(accessor<T, dims, mode, target, isPlaceholder> acc);
-
-  // Registers an accessor with a command group submission
   // Already existed in 1.2.1, now it can take any accessor
   // and return the same accessor back
   template <class T,
@@ -404,9 +526,18 @@ class handler {
             access::target target,
             access::placeholder isPlaceholder>
   accessor<T, dims, mode, target, isPlaceholder>
-  require(accessor<T, dims, mode, target, isPlaceholder> acc) {
-    return this->require<mode>(acc);
-  }
+  require(accessor<T, dims, mode, target, isPlaceholder> acc);
+
+  // Registers an accessor with a command group submission
+  // Overload that instructs the scheduler to discard previous data
+  template <class T,
+            int dims,
+            access::mode mode,
+            access::target target,
+            access::placeholder isPlaceholder>
+  accessor<T, dims, mode, target, isPlaceholder>
+  require(accessor<T, dims, mode, target, isPlaceholder> acc,
+          property::discard);
 };
 
 } // namespace sycl
@@ -416,7 +547,7 @@ class handler {
 | Member function | Description |
 |-----------------|-------------|
 | *`template <class T, int dims, ...> accessor<T, dims, ...> require(accessor<T, dims, ...> acc)`* | Registers the accessor for command group submission. Host accessors are not allowed. Returns `acc`. |
-| *`template <access::mode requestedMode, class T, int dims, ...> accessor<T, dims, ...> require(accessor<T, dims, ...> acc)`* | Registers the accessor for command group submission. `requestedMode` can be used to weaken the access mode. `requestedMode` cannot be a write mode if the accessor mode is `access::mode::read`. Host accessors are not allowed. Returns `acc`. |
+| *`template <class T, int dims, ...> accessor<T, dims, ...> require(accessor<T, dims, ...> acc, property::discard)`* | Registers the accessor for command group submission and instructs the scheduler to ignore previous data. Host accessors are not allowed. Returns `acc`. |
 
 ## Considerations and alternatives
 
@@ -464,29 +595,6 @@ Here are some options:
    We don't consider this option very desirable
    since it just replaces one kind of verbosity for another.
 
-### Class template argument deduction
-
-It was suggested CTAD would help with some of the accessor verbosity
-when compiling in C++17 mode.
-We agree, but there are limitations:
-C++17 doesn't allow CTAD on alias templates.
-That would mean that while CTAD might work well with `access::target::global_buffer`,
-since that's the default target and one can just use `accessor`,
-it wouldn't work with `access::target::constant_buffer`
-or `access::target::host_buffer`
-since those rely on alias templates
-`constant_buffer_accessor` and `host_accessor`, respectively.
-This also affects the `local_accessor` alias already in SYCL 1.2.1.
-
-An option for solving this pre-C++20 would be
-to define `constant_buffer_accessor` and `host_accessor` as new types
-instead of alias templates.
-They would publicly inherit from the `accessor` class
-using the appropriate access target.
-
-However, this would also require defining additional constructors,
-implicit conversions, and deduction guides for the feature to work as desired.
-
 ### Detecting writeable accessors
 
 We considered adding a type trait that would indicate
@@ -513,11 +621,11 @@ or a class template.
 buffer<int> buf{...};
 queue q;
 q.submit([&](handler& cgh) {
-  accessor<int> a{buf, cgh};
+  accessor a{buf, cgh};
   ... // Write to buffer
 });
 {
-  host_accessor<const int> a{B};
+  host_accessor a{B, read_only_tag{}};
   ... // Read from buffer
 }
 ```
@@ -539,25 +647,27 @@ queue myQueue;
 buffer<int> bufA{bufRange};
 myQueue.submit([&](handler &cgh) {
   accessor accA{bufA, cgh}; // accessor<int, 1, read_write, global_buffer>
-  assert(!accA.is_null());
+  assert(!accA.empty()());
   assert(accA.has_handler());
-  cgh.require<access::mode::discard_write>(
-      accA); // Doesn't change type, scheduler can ignore previous data
+  cgh.require(
+    accA, property::discard_v); // Doesn't change type,
+                                // scheduler can ignore previous data
   cgh.copy(a.data(), accA);
 });
 
 // Create a buffer and copy `b` into it
 // Use placeholders
 accessor<int> accB; // accessor<int, 1, read_write, global_buffer>
-assert(accB.is_null());
+assert(accB.empty()());
 assert(!accB.has_handler());
 buffer<int> bufB{bufRange};
 accB = accessor{bufB}; // accessor<int, 1, read_write, global_buffer>
-assert(!accB.is_null());
+assert(!accB.empty()());
 assert(!accB.has_handler());
 myQueue.submit([&](handler &cgh) {
-  cgh.require<access::mode::discard_write>(
-      accB); // Doesn't change type, scheduler can ignore previous data
+  cgh.require(
+      accB, property::discard_v); // Doesn't change type,
+                                  // scheduler can ignore previous data
   cgh.copy(b.data(), accB);
 });
 
@@ -565,12 +675,20 @@ myQueue.submit([&](handler &cgh) {
 // Use constant buffer accessors
 buffer<int> bufC{bufRange};
 myQueue.submit([&](handler &cgh) {
-  accessor<const int> A{
-      bufA, cgh}; // accessor<const int, 1, read_write, global_buffer>
-  constant_buffer_accessor B{
-      bufB, cgh}; // accessor<const int, 1, read, constant_buffer>
-  auto C = cgh.require<access::mode::discard_write>(
-      accessor{bufC}); // accessor<int, 1, read_write, global_buffer>
+  accessor A{bufA, cgh, read_only_tag{}};
+  static_assert(std::is_same_v<
+    decltype(A),
+    accessor<const int, 1,
+             access::mode::read_write, access::target::global_buffer>>);
+  accessor B{bufA, cgh, constant_access_tag{}};
+  static_assert(std::is_same_v<
+    decltype(B),
+    accessor<const int, 1,
+             access::mode::read, access::target::constant_buffer>>);
+  auto C = cgh.require(accessor{bufC}, property::discard_v);
+  static_assert(std::is_same_v<
+    decltype(C),
+    accessor<int, 1, read_write, global_buffer>>);
   cgh.parallel_for<class vec_add>(bufRange,
                                   [=](id<1> i) { C[i] = A[i] + B[i]; });
 });
@@ -579,7 +697,7 @@ myQueue.submit([&](handler &cgh) {
   // Request host access
   host_accessor<const int> accC{
       bufC}; // accessor<const int, 1, read_write, host_buffer>
-  assert(!accC.is_null());
+  assert(!accC.empty()());
   assert(!accC.has_handler());
   for (int i = 0; i < N; ++i) {
     std::cout << accC[i] << std::endl;
@@ -607,6 +725,7 @@ buffer<int> buf;
 accessor<int> bufAcc =
     buf.get_access(cgh);
 accessor<int> bufAccNew{buf, cgh};
+accessor bufAccCTAD{buf, cgh};
 
 // Global buffer access, read-only
 accessor<int,
@@ -614,6 +733,7 @@ accessor<int,
           access::mode::read>
     bufAccRead = buf.get_access<access::mode::read>(cgh);
 accessor<const int> bufAccReadNew{buf, cgh};
+accessor bufAccReadCTAD{buf, cgh, read_only_tag{}};
 
 // Global buffer access, ignore previous data
 accessor<int,
@@ -622,6 +742,8 @@ accessor<int,
     bufAccDiscard = buf.get_access<access::mode::discard_read_write>(cgh);
 accessor<int> bufAccNewDiscard =
     buf.get_access<access::mode::discard_read_write>(cgh);
+auto bufAccNewDiscard2 = accessor<int>{buf, cgh, {property::discard_v}};
+accessor bufAccCTADDiscard{buf, cgh, {property::discard_v}};
 
 // Constant buffer access
 accessor<int,
@@ -630,6 +752,7 @@ accessor<int,
           access::target::constant_buffer>
     bufAccConst = buf.get_access<access::mode::read, access::target::constant_buffer>(cgh);
 constant_buffer_accessor<const int> bufAccConstNew{buf, cgh};
+accessor bufAccConstCTAD{buf, cgh, constant_access_tag{}};
 
 // Host buffer access
 accessor<int,
@@ -638,6 +761,7 @@ accessor<int,
           access::target::host_buffer>
     bufAccHost = buf.get_access();
 host_accessor<int> bufAccHostNew{buf};
+host_accessor bufAccHostCTAD{buf};
 
 // Host buffer access, read-only
 accessor<int,
@@ -646,6 +770,7 @@ accessor<int,
           access::target::host_buffer>
     bufAccHostRead = buf.get_access<access::mode::read>();
 host_accessor<const int> bufAccHostNewRead{buf};
+host_accessor bufAccHostCTADRead{buf, read_only_tag{}};
 
 // Host buffer access, ignore previous data
 accessor<int,
@@ -655,6 +780,8 @@ accessor<int,
     bufAccHostDiscard = buf.get_access<access::mode::discard_read_write>();
 host_accessor<int> bufAccHostNewDiscard =
     buf.get_access<access::mode::discard_read_write>();
+auto bufAccHostNewDiscard2 = host_accessor<int>{buf, {property::discard_v}};
+host_accessor bufAccHostCTADDiscard{buf, {property::discard_v}};
 ```
 
 ### Calling `require`
@@ -670,7 +797,7 @@ buffer<int> bufC;
 
 q.submit([](handler& cgh) {
   // Request read-only access to bufA
-  accessor<const int> accA{bufA, cgh};
+  accessor accA{bufA, cgh, read_only_tag{}};
   // Register accA for command group submission
   // Not so useful in this case since it's already been registered,
   // but accA could also be a placeholder
@@ -683,10 +810,10 @@ q.submit([](handler& cgh) {
 
   // Create a placeholder with read-write access to bufC
   // The accessor is immediately registered and returned
-  // The provided access mode instructs the scheduler to ignore previous data
-  // and "weaken" the scheduling mode to write-only
+  // The provided discard property instructs the scheduler
+  // to ignore previous data
   // accC is of type accessor<int>
-  auto accC = cgh.require<access::mode::discard_write>(accessor<int>{bufC});
+  auto accC = cgh.require(accessor{bufC}, property::discard_v);
 
   ...
 });
