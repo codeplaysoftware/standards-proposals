@@ -1,0 +1,295 @@
+# DXXXXr0: Policy property for describing adjacency
+
+**Date: 2020-03-28**
+
+**Audience: SG1, SG14**
+
+**Authors: Gordon Brown, Ruyman Reyes, Michael Wong, H. Carter Edwards, Thomas
+Rodgers, Mark Hoemmen, Tom Scogland**
+
+**Emails: gordon@codeplay.com, ruyman@codeplay.com, michael@codeplay.com,
+hedwards@nvidia.com, rodgert@twrodgers.com, mhoemme@sandia.gov,
+tscogland@llnl.gov**
+
+**Reply to: gordon@codeplay.com**
+
+# Acknowledgements
+
+This paper is the result of discussions from many contributors within SG1, SG14
+and the heterogeneous C\+\+ group.
+
+# Preface
+
+After a lengthy discussion with SG1 during the Prague 2019 ISO C++ meeting it
+was decided to take a different approach to P1436r3 [[1]][P1436r3]. This paper
+is a continuation of prior work in P1436r3 [[2]][p0443r12] focusing specifically
+on the the `adjacency` properties, previously named `bulk_execution_affinity`.
+
+# Motivation
+
+*Affinity* refers to the "closeness" in terms of memory access performance,
+between running code, the hardware execution resource on which the code runs,
+and the data that the code accesses.  A hardware execution resource has "more
+affinity" to a part of memory or to some data, if it has lower latency and/or
+higher bandwidth when accessing that memory / those data.
+
+On almost all computer architectures, the cost of accessing different data may
+differ. Most computers have caches that are associated with specific processing
+units. If the operating system moves a thread or process from one processing
+unit to another, the thread or process will no longer have data in its new cache
+that it had in its old cache. This may make the next access to those data
+slower. Many computers also have a Non-Uniform Memory Architecture (NUMA),
+which means that even though all processing units see a single memory in terms
+of programming model, different processing units may still have more affinity to
+some parts of memory than others. NUMA exists because it is difficult to scale
+non-NUMA memory systems to the performance needed by today's highly parallel
+computers and applications.
+
+One strategy to improve applications' performance, given the importance of
+affinity, is processor and memory *binding*. Keeping a process bound to a
+specific thread and local memory region optimizes cache affinity. It also
+reduces context switching and unnecessary scheduler activity. Since memory
+accesses to remote locations incur higher latency and/or lower bandwidth,
+control of thread placement to enforce affinity within parallel applications is
+crucial to fuel all the cores and to exploit the full performance of the memory
+subsystem on NUMA computers. 
+
+Operating systems (OSes) traditionally take responsibility for assigning threads
+or processes to run on processing units. However, OSes may use high-level
+policies for this assignment that do not necessarily match the optimal usage
+pattern for a given application. Application developers must leverage the
+placement of memory and *placement of threads* for best performance on current
+and future architectures. For C\+\+ developers to achieve this, native support
+for *placement of threads and memory* is critical for application portability.
+We will refer to this as the *affinity problem*. 
+
+The affinity problem is especially challenging for applications whose behavior
+changes over time or is hard to predict, or when different applications
+interfere with each other's performance. Today, most OSes already can group
+processing units according to their locality and distribute processes, while
+keeping threads close to the initial thread, or even avoid migrating threads and
+maintain first touch policy. Nevertheless, most programs can change their work
+distribution, especially in the presence of nested parallelism.
+
+Frequently, data are initialized at the beginning of the program by the initial
+thread and are used by multiple threads. While some OSes automatically migrate
+threads or data for better affinity, migration may have high overhead. In an
+optimal case, the OS may automatically detect which thread access which data
+most frequently, or it may replicate data which are read by multiple threads, or
+migrate data which are modified and used by threads residing on remote locality
+groups. However, the OS often does a reasonable job, if the machine is not
+overloaded, if the application carefully uses first-touch allocation, and if the
+program does not change its behavior with respect to locality.
+
+The affinity interface we propose should help computers achieve a much higher
+fraction of peak memory bandwidth when using parallel algorithms. In the future,
+we plan to extend this to heterogeneous and distributed computing. This follows
+the lead of OpenMP [[3]][design-of-openmp].
+
+# Proposal
+
+This paper proposes a new group of properties (as described in P1393r0
+[[4]][p1393r0] that allow users to specify how a callable in a bulk algorithm
+such as the `bulk_execute` algorithm in [[2]][p0443r12] will perform in light of
+the placement of the work-items it invokes. This information can then be used by
+an an executor implementation which is aware of the property to efficiently map
+the work-items it invokes to the underlying resources which it represents.
+
+## Shift to descriptive properties
+
+The previous revision of this proposal; P1436r3 [[1]][p1436r3] took a
+prescriptive approach. It suggested the `bulk_execution_affinity`
+properties, which targeted executors, providing a hint to the executor
+implementation that it should aim to map the work-items invoked by a bulk
+algorithm to the underlying resources of the executor in scatter or gather
+pattern to achieve optimal performance for the callable being invoked.
+
+This proposal switches perspective on this, and instead takes a
+descriptive approach. It suggests the `adjacency` properties, which instead
+target execution policies, providing a hint to the executor implementation which
+expresses the performance implications of the callable on the mapping of the
+work-items invoked by a bulk algorithm, allowing the implementation to choose
+the appropriate action.
+
+This shift moves towards a more algorithmic-based approach to the customization
+of execution and both removes the need for users to understand the internal
+workings of various executors and allows more freedom in executor
+implementations to choose how to interpret the hint.
+
+The properties of the previous revision of this paper; `bulk_execution_affinity`
+, also included the `balanced` property which differentiated between round-robin
+and bin-packed mapping of work-items to the underlying resources. This variant
+is not reflected in this paper, as it requires some further investigation, so it
+will be continued in later revisions of [[1]][p1436r3].
+
+## Example
+
+Below is an example of how the `adjacency` properties can be used with the
+`indexed_for` algorithm to perform first touch initialization. For the purposes
+of demonstration this example uses sender-based algorithms from P1897r2
+[[5]][p1897r2].
+
+```cpp
+// Create a vector of unique_ptr and reserve space for one for each index in the
+// bulk algorithm.
+std::vector<std::unique_ptr<float> data{};
+data.reserve(SIZE);
+
+// Create a NUMA-aware executor.
+numa_executor numaExec;
+
+// Create an iota view to represent the iteration space of the bulk algorithm.
+auto indexRng = ranges::iota_view{SIZE};
+
+// Create a new execution policy which requires the adjacency.constructive
+// property on the std::par execution policy so that it provides a hint to the
+// executor that the algorithm would benefit from constructive interference in
+// the mapping of work-items to execution resources.
+auto adjacencyPar = std::execution::require(std::par, adjacency.constructive);
+
+// Define a callable that will be invoked for each work-item in the bulk
+// algorithm and perform first touch initialization.
+auto initialize = [=](size_t idx, std::vector<unique_ptr<float>> &value) {
+  value[idx] = std::make_new<float>(0.0f);
+}
+
+// Define a callable that will be invoked for each work-item in the bulk
+// algorithm abd perform some computation.
+auto compute = [=](size_t idx, std::vector<unique_ptr<float>> &value) {
+    do_something(value[idx]);
+}
+
+// Compose a sender that takes the input data, schedules using the NUMA-aware
+// executor and then calls the indexed_for algorithm twice, once to initialize
+// and then again to perform the computation.
+auto sender = std::execution::just(data)
+            | std::execution::via(numaExec)
+            | std::execution::indexed_for(indexRng, adjacencyPar, initialize)
+            | std::execution::indexed_for(indexRng, adjacencyPar, compute);
+
+// Submit the sender and wait on the result.
+std::execution::sync_wait(sender, std::execution::sink_receiver{});
+```
+*Listing 1: Using the `adjacency properties on a NUMA-aware executor*
+
+### Execution resources
+
+As a pre-requisite for the `adjacency` properties, this paper also proposes a
+definition for the underlying resources of an executor.
+
+## Proposed wording
+
+### Synopsis
+
+```cpp
+namespace std {
+namespace experimental {
+namespace execution {
+
+struct adjacency_t {
+
+  struct no_implication_t;
+  struct constructive_t;
+  struct destructive_t;
+
+  constexpr no_implication_t no_implication;
+  constexpr constructive_t constructive;
+  constexpr destructive_t destructive;
+
+};
+
+constexpr adjacency_t adjacency;
+
+}  // execution
+}  // experimental
+}  // std
+```
+*Listing 2: Addition to execution header synopsis*
+
+### Execution resources
+
+An *execution resource* represents an abstraction of a hardware or software
+layer that guarantees a particular set of affinity properties, where the level
+of abstraction is implementation-defined. An implementation is permitted to
+migrate any underlying resources providing it guarantees the affinity properties
+remain consistent. This allows freedom for the implementor but also consistency
+for users.
+
+If an *execution resource* is valid, then it must always point to the same
+underlying thing. For example, a *resource* cannot first point to one CPU core,
+and then suddenly point to a different CPU core. An *execution context* can thus
+rely on properties like binding of operating system threads to CPU cores.
+However, the "thing" to which an *execution resource* points may be a dynamic,
+possibly a software-managed pool of hardware. Here are three examples of this
+phenomenon:
+
+   1. The "hardware" may actually be a virtual machine (VM). At any point, the
+   VM may pause, migrate to different physical hardware, and resume. If the VM
+   presents the same virtual hardware before and after the migration, then the
+   *resources* that an application running on the VM sees should not change.
+   2. The OS may maintain a pool of a varying number of CPU cores as a shared
+   resource among different user-level processes. When a process stops using the
+   resource, the OS may reclaim cores. It may make sense to present this pool as
+   an *execution resource*.
+   3. A low-level device driver on a laptop may switch between a "discrete" GPU
+   and an "integrated" GPU, depending on utilization and power constraints. If
+   the two GPUs have the same instruction set and can access the same memory, it
+   may make sense to present them as a "virtualized" single *execution
+   resource*.
+
+In summary, an *execution resource* either identifies a thing uniquely, or
+harmlessly points to nothing.
+
+### Property group `adjacency`
+
+The `adjacency_t` properties are a group of mutually exclusive behavioral
+properties which provide a hint to an executor, via an *execution policy* which
+describes the implication of adjacent work-items of the callable of a bulk
+algorithm, allowing the implementation to choose the appropriate action.
+
+*Locality distance* specifies an implementation-defined metric for
+measuring the relative affinity between *execution resources* whereby *execution
+resources* with a lower *locality distance* are likely to have similar latency
+in memory access operations, for a given memory location.
+
+> [*Note:* For example, two hardware threads on the same CPU core would have a
+lower *locality distance* whereas two hardware threads on different CPU cores or
+in different NUMA regions would have a higher *locality distance*. *--end note*]
+
+> [*Note:* An alternative term of art for *locality distance* could be *locality
+interference*. *--end note*]
+
+When a bulk algorithm is invoked with a callable `f`, a size `s` and using a
+policy `p`, where `query(p, adjacency_t) == adjacency_t::constructive_t`, `p`
+must communicate a hint to the executor being scheduled on that any adjacent
+work-items in the sequence `0` to `s-1` which are mapped to *execution
+resources* with lower *locality distance* will result in higher constructive
+interference for `f`.
+
+When a bulk algorithm is invoked with a callable `f`, a size `s` and using a
+policy `p`, where `query(p, destructive_t) == adjacency_t::destructive_t`, `p`
+must communicate a hint to the executor being scheduled on that any adjacent
+work-items in the sequence `0` to `s-1` which are mapped to *execution
+resources* with lower *locality distance* will result in higher destructive
+interference for `f`.
+
+> [*Note:* It's expected that the default value of `adjacency_t` for most
+executors be `adjacency_t::no_implication_t`. *--end note*]
+
+# References
+
+[P1436r3]: http://wg21.link/P1436r3
+[[1]][P1436r3] Executor properties for affinity-based execution
+
+[p0443r12]: http://wg21.link/p0443r13
+[[2]][p0443r12] A Unified Executors Proposal for C\+\+
+
+[design-of-openmp]: https://link.springer.com/chapter/10.1007/978-3-642-30961-8_2
+[[3]][design-of-openmp] The Design of OpenMP Thread Affinity
+
+[p1393r0]: http://wg21.link/p1393r0
+[[4]][p1393r0] A General Property Customization Mechanism
+
+[p1897r2]: http://wg21.link/p1897r2
+[[5]][p1897r2] Towards C++23 executors: A proposal for an initial set of
+algorithms
