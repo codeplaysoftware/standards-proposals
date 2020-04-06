@@ -1,6 +1,6 @@
 # DXXXXr0: Policy property for describing adjacency
 
-**Date: 2020-03-28**
+**Date: 2020-04-06**
 
 **Audience: SG1, SG14**
 
