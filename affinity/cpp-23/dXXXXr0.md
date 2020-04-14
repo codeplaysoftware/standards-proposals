@@ -8,7 +8,7 @@
 Rodgers, Mark Hoemmen, Tom Scogland**
 
 **Emails: gordon@codeplay.com, ruyman@codeplay.com, michael@codeplay.com,
-hedwards@nvidia.com, rodgert@twrodgers.com, mhoemme@sandia.gov,
+hedwards@nvidia.com, rodgert@twrodgers.com, mhoemmen@stellarscience.com,
 tscogland@llnl.gov**
 
 **Reply to: gordon@codeplay.com**
@@ -27,41 +27,46 @@ on the the `adjacency` properties, previously named `bulk_execution_affinity`.
 
 # Motivation
 
-*Affinity* refers to the "closeness" in terms of memory access performance,
-between running code, the hardware execution resource on which the code runs,
-and the data that the code accesses.  A hardware execution resource has "more
-affinity" to a part of memory or to some data, if it has lower latency and/or
-higher bandwidth when accessing that memory / those data.
+The typical computer systems targeted by the C++ abstract machine have a uniform
+address space, meaning a pointer can be dereferenced anywhere in the
+application. However, the cost to access different regions of that address space
+are most often not uniform. The position of a memory allocation relative to the
+thread which accesses, otherwise refereed to as the process or memory affinity
+can have a significant impact on the performance of concurrent applications.
 
-On almost all computer architectures, the cost of accessing different data may
-differ. Most computers have caches that are associated with specific processing
-units. If the operating system moves a thread or process from one processing
-unit to another, the thread or process will no longer have data in its new cache
-that it had in its old cache. This may make the next access to those data
-slower. Many computers also have a Non-Uniform Memory Architecture (NUMA),
-which means that even though all processing units see a single memory in terms
-of programming model, different processing units may still have more affinity to
-some parts of memory than others. NUMA exists because it is difficult to scale
-non-NUMA memory systems to the performance needed by today's highly parallel
-computers and applications.
+Most computer systems have numerous level of cache and some larger systems have
+a Non-Uniform Memory Architecture (NUMA), where they have a single address space
+that is virtually mapped across a network of interconnected nodes. NUMA exists
+specifically because it is difficult to scale non-NUMA memory systems to the
+performance needed by today's highly parallel applications.
 
-One strategy to improve applications' performance, given the importance of
-affinity, is processor and memory *binding*. Keeping a process bound to a
-specific thread and local memory region optimizes cache affinity. It also
-reduces context switching and unnecessary scheduler activity. Since memory
-accesses to remote locations incur higher latency and/or lower bandwidth,
-control of thread placement to enforce affinity within parallel applications is
-crucial to fuel all the cores and to exploit the full performance of the memory
-subsystem on NUMA computers. 
+When a memory allocation is shared among threads, you can encounter false
+sharing depending on which threads are reading and writing that location. When
+this happens then the cost of reading from that location can be much higher than
+would ordinarily be expected. This is further complicated as operating systems
+often switch out hardware threads from one thread or process to another.
+
+As the C++ abstract machine has no concept of caches or the positioning of OS
+threads it is impossible for C++ applications to reason about this without using
+a third party programming model such as OpenMP [[3]][design-of-openmp].
+
+One strategy to improve an applications' performance, given the importance of
+affinity, is thread and memory placement. Keeping a process bound to a specific
+thread and local memory region optimizes cache affinity. It also reduces context
+switching and unnecessary scheduler activity. Since memory accesses to remote
+locations incur higher latency and/or lower bandwidth, control of thread
+placement to enforce affinity within parallel applications is crucial to fuel
+all the cores and to exploit the full performance of the memory subsystem on
+NUMA computers. 
 
 Operating systems (OSes) traditionally take responsibility for assigning threads
 or processes to run on processing units. However, OSes may use high-level
 policies for this assignment that do not necessarily match the optimal usage
 pattern for a given application. Application developers must leverage the
-placement of memory and *placement of threads* for best performance on current
+placement of memory and placement of threads for best performance on current
 and future architectures. For C\+\+ developers to achieve this, native support
-for *placement of threads and memory* is critical for application portability.
-We will refer to this as the *affinity problem*. 
+for placement of threads and memory is critical for application portability.
+We will refer to this as the affinity problem. 
 
 The affinity problem is especially challenging for applications whose behavior
 changes over time or is hard to predict, or when different applications
@@ -89,15 +94,16 @@ the lead of OpenMP [[3]][design-of-openmp].
 # Proposal
 
 This paper proposes a new group of properties (as described in P1393r0
-[[4]][p1393r0] that allow users to specify how a callable in a bulk algorithm
-such as the `bulk_execute` algorithm in [[2]][p0443r12] will perform in light of
-the placement of the work-items it invokes. This information can then be used by
-an an executor implementation which is aware of the property to efficiently map
-the work-items it invokes to the underlying resources which it represents.
+[[4]][p1393r0]) that allow users to specify how a callable in a bulk algorithm
+such as the `bulk_execute` algorithm in P0443r12 [[2]][p0443r12] will perform in
+light of the placement of the work-items it invokes. This information can then
+be used by an executor implementation which is aware of the property to
+efficiently map the work-items it invokes to the underlying resources which it
+represents.
 
 ## Shift to descriptive properties
 
-The previous revision of this proposal; P1436r3 [[1]][p1436r3] took a
+The previous revision of this proposal; P1436r3 [[1]][p1436r3], took a
 prescriptive approach. It suggested the `bulk_execution_affinity`
 properties, which targeted executors, providing a hint to the executor
 implementation that it should aim to map the work-items invoked by a bulk
@@ -112,11 +118,11 @@ work-items invoked by a bulk algorithm, allowing the implementation to choose
 the appropriate action.
 
 This shift moves towards a more algorithmic-based approach to the customization
-of execution and both removes the need for users to understand the internal
+of execution. It both removes the need for users to understand the internal
 workings of various executors and allows more freedom in executor
 implementations to choose how to interpret the hint.
 
-The properties of the previous revision of this paper; `bulk_execution_affinity`
+The properties of the previous revision of this paper, `bulk_execution_affinity`
 , also included the `balanced` property which differentiated between round-robin
 and bin-packed mapping of work-items to the underlying resources. This variant
 is not reflected in this paper, as it requires some further investigation, so it
@@ -132,7 +138,7 @@ of demonstration this example uses sender-based algorithms from P1897r2
 ```cpp
 // Create a vector of unique_ptr and reserve space for one for each index in the
 // bulk algorithm.
-std::vector<std::unique_ptr<float> data{};
+std::vector<std::unique_ptr<float>> data{};
 data.reserve(SIZE);
 
 // Create a NUMA-aware executor.
@@ -216,12 +222,10 @@ remain consistent. This allows freedom for the implementor but also consistency
 for users.
 
 If an *execution resource* is valid, then it must always point to the same
-underlying thing. For example, a *resource* cannot first point to one CPU core,
-and then suddenly point to a different CPU core. An *execution context* can thus
-rely on properties like binding of operating system threads to CPU cores.
-However, the "thing" to which an *execution resource* points may be a dynamic,
-possibly a software-managed pool of hardware. Here are three examples of this
-phenomenon:
+underlying thing. An *execution context* can thus rely on properties like
+binding of operating system threads to CPU cores. However, the "thing" to which
+an *execution resource* points may be a dynamic, possibly software-managed pool
+of hardware. Here are three examples of this phenomenon:
 
    1. The "hardware" may actually be a virtual machine (VM). At any point, the
    VM may pause, migrate to different physical hardware, and resume. If the VM
@@ -247,31 +251,31 @@ properties which provide a hint to an executor, via an *execution policy* which
 describes the implication of adjacent work-items of the callable of a bulk
 algorithm, allowing the implementation to choose the appropriate action.
 
-*Locality distance* specifies an implementation-defined metric for
-measuring the relative affinity between *execution resources* whereby *execution
-resources* with a lower *locality distance* are likely to have similar latency
-in memory access operations, for a given memory location.
+*Locality interference* specifies an implementation-defined metric for
+measuring the relative interference between *execution resources*. *Execution
+resources* with a higher *locality interference* with each other share more
+common memory resources, connections or subsumptions of a hierarchy, and have
+similar latency or bandwidth in memory access operations, for a given memory
+location, relative to other *execution resources*.
 
 > [*Note:* For example, two hardware threads on the same CPU core would have a
-lower *locality distance* whereas two hardware threads on different CPU cores or
-in different NUMA regions would have a higher *locality distance*. *--end note*]
-
-> [*Note:* An alternative term of art for *locality distance* could be *locality
-interference*. *--end note*]
+higher *locality interference* whereas two hardware threads on different CPU
+cores or in different NUMA regions would have a lower *locality interference*.
+*--end note*]
 
 When a bulk algorithm is invoked with a callable `f`, a size `s` and using a
 policy `p`, where `query(p, adjacency_t) == adjacency_t::constructive_t`, `p`
 must communicate a hint to the executor being scheduled on that any adjacent
 work-items in the sequence `0` to `s-1` which are mapped to *execution
-resources* with lower *locality distance* will result in higher constructive
-interference for `f`.
+resources* with higher *locality interference* will result in higher
+constructive interference for `f`, relative to other *execution resources*.
 
 When a bulk algorithm is invoked with a callable `f`, a size `s` and using a
 policy `p`, where `query(p, destructive_t) == adjacency_t::destructive_t`, `p`
 must communicate a hint to the executor being scheduled on that any adjacent
 work-items in the sequence `0` to `s-1` which are mapped to *execution
-resources* with lower *locality distance* will result in higher destructive
-interference for `f`.
+resources* with higher *locality interference* will result in higher destructive
+interference for `f`, relative to other *execution resources*.
 
 > [*Note:* It's expected that the default value of `adjacency_t` for most
 executors be `adjacency_t::no_implication_t`. *--end note*]
