@@ -277,6 +277,11 @@ work-items in the sequence `0` to `s-1` which are mapped to *execution
 resources* with higher *locality interference* will result in higher destructive
 interference for `f`, relative to other *execution resources*.
 
+> [*Note:* Subsequent invocations of a bulk algorithm with the same size `s` and
+the same policy `p`, scheduling on the same executor `e` should aim to map work-
+items to *execution resources* consistently with previous invocations.
+*--end note*]
+
 > [*Note:* It's expected that the default value of `adjacency_t` for most
 executors be `adjacency_t::no_implication_t`. *--end note*]
 
