@@ -2,7 +2,7 @@
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Name             | Host task with interop capabilities                                                                                                                                                  |
 | Date of Creation | 16 January 2019                                                                                                                                                                      |
-| Revision         | 0.6                                                                                                                                                                                  |
+| Revision         | 0.7                                                                                                                                                                                  |
 | Target           | Vendor extension                                                                                                                                                                     |
 | Current Status   | 0.1 _Available since CE 1.0.5_, 0.6 TBD                                                                                                                                              |
 | Reply-to         | Ruyman Reyes <ruyman@codeplay.com>                                                                                                                                                   |
@@ -33,11 +33,15 @@ associated with SYCL buffers and enqueue a host task that can execute an
 arbitrary portion of host code within the SYCL runtime, therefore taking
 advantage of SYCL dependency analysis and scheduling.
 
-As in all other commands in command group scope, the interoperability task 
-executes asynchronously w.r.t to the submission point - as part of the SYCL DAG -
-once all requirements are satisfied.
+As in all other commands in command group scope, the a host task, used either
+for executing arbitrary C++ code or interoperability code, executes
+asynchronously w.r.t to the submission point - as part of the SYCL DAG
+- once all requirements are satisfied, just as with kernel functions.
 
 ## Revisions
+
+### 0.7
+* Add clarification to the scheduling of host tasks.
 
 ### 0.6
 * Internal feedback, editorial and minor fixes
@@ -204,6 +208,18 @@ Given the rules above, a *command group* submission must first ensure that
 requirement per target. Then, *target destination resolution* checks that
 only one of the memory accesses requires writing to memory.
 If more than one target requires writing, the *command group* is invalid and an error **sycl::invalid_object** is thrown.
+
+## Scheduling
+
+A host task is scheduled with the SYCL DAG according to the SYCL memory model.
+THis means that a host task will only be scheduled one any requisites created
+by accessors in the same command group are first resolved. A host task will also
+create it's own dependencies on other command groups, including kernel functions
+and asynchronous copies.
+
+This means that just as with kernel functions a host task may run concurrently
+with other kernel functions or host tasks if there are no data dependencies
+restricting this and the implementation is able to.
 
 ## Interface changes
 
