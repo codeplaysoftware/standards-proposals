@@ -85,6 +85,9 @@ template<> struct image_format_type<image_format::r32g32b32a32_sfloat> {
 template<> struct image_format_type<image_format::b8g8r8a8_unorm> {
     using type = float4;
 };
+
+template<image_format format>
+using image_format_t = typename image_format_type<format>::type;
 } // namespace sycl
 ```
 
@@ -92,7 +95,7 @@ With these, a new overload of `get_access` is added to `image` defined as
 
 ```c++
 template <image_format format, access::mode accessMode>
-accessor<image_format_type<format>::type, dimensions, accessMode, access::target::image>
+accessor<image_format_t<format>, dimensions, accessMode, access::target::image>
 get_access(handler & commandGroupHandler);
 ```
 
