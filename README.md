@@ -64,3 +64,4 @@ from this registry in the future.
 | CP021 | [Default-Constructed Buffers](default-constructed-buffers/default-constructed-buffers.md) | SYCL 1.2.1 | 27 August 2019 | 5 September 2019 | _Draft_ |
 | CP022 | [Host Task with Interop capabilities](host_task/host_task.md) | SYCL 1.2.1 | 16 January 2019 | 20 January 2020 | _Final Draft_ |
 | CP026 | [Generalized Error Handling For SYCL](error-handling/sycl-error-handling.md) | SYCL Next | 10 March 2020 | 10 March 2020 | _Under Review_ |
+| CP027 | [Global device symbols](symbol/symbol.md) | SYCL 2020 | 3 August 2020 | 3 August 2020 | _Initial Draft_ |
