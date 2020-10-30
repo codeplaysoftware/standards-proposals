@@ -39,7 +39,6 @@ enum class image_format : unsigned int {
     r32b32g32a32_uint,
     r16b16g16a16_sfloat,
     r32g32b32a32_sfloat,
-    b8g8r8a8_unorm,
 };
 } // namespace sycl
 ```
@@ -50,44 +49,47 @@ defined as
 ```c++
 
 namespace sycl {
-template<image_format> struct image_format_type;
+template<image_format> struct image_access;
 
-template<> struct image_format_type<image_format::r8g8b8a8_unorm> {
+template<> struct image_access<image_format::r8g8b8a8_snorm> {
     using type = float4;
 };
-template<> struct image_format_type<image_format::r16g16b16a16_unorm> {
+template<> struct image_access<image_format::r16g16b16a16_snorm> {
     using type = float4;
 };
-template<> struct image_format_type<image_format::r8g8b8a8_sint> {
+template<> struct image_access<image_format::r8g8b8a8_unorm> {
+    using type = float4;
+};
+template<> struct image_access<image_format::r16g16b16a16_unorm> {
+    using type = float4;
+};
+template<> struct image_access<image_format::r8g8b8a8_sint> {
     using type = schar4;
 };
-template<> struct image_format_type<image_format::r16g16b16a16_sint> {
+template<> struct image_access<image_format::r16g16b16a16_sint> {
     using type = short4;
 };
-template<> struct image_format_type<image_format::r32b32g32a32_sint> {
+template<> struct image_access<image_format::r32b32g32a32_sint> {
     using type = int4;
 };
-template<> struct image_format_type<image_format::r8g8b8a8_uint> {
+template<> struct image_access<image_format::r8g8b8a8_uint> {
     using type = uchar4;
 };
-template<> struct image_format_type<image_format::r16g16b16a16_uint> {
+template<> struct image_access<image_format::r16g16b16a16_uint> {
     using type = ushort4;
 };
-template<> struct image_format_type<image_format::r32b32g32a32_uint> {
+template<> struct image_access<image_format::r32b32g32a32_uint> {
     using type = uint4;
 };
-template<> struct image_format_type<image_format::r16b16g16a16_sfloat> {
+template<> struct image_access<image_format::r16b16g16a16_sfloat> {
     using type = half4;
 };
-template<> struct image_format_type<image_format::r32g32b32a32_sfloat> {
-    using type = float4;
-};
-template<> struct image_format_type<image_format::b8g8r8a8_unorm> {
+template<> struct image_access<image_format::r32g32b32a32_sfloat> {
     using type = float4;
 };
 
 template<image_format format>
-using image_format_t = typename image_format_type<format>::type;
+using image_access_t = typename image_access<format>::type;
 } // namespace sycl
 ```
 
@@ -95,7 +97,7 @@ With these, a new overload of `get_access` is added to `image` defined as
 
 ```c++
 template <image_format format, access::mode accessMode>
-accessor<image_format_t<format>, dimensions, accessMode, access::target::image>
+accessor<image_access_t<format>, dimensions, accessMode, access::target::image>
 get_access(handler & commandGroupHandler);
 ```
 
@@ -104,20 +106,20 @@ Calling `read` or `write` on an image accessor retrieved through the new
 the underlying image and the `image_format` given to `get_access` is one of the
 combinations shown in the following table:
 
-|  `image_channel_type `  |     `image_format`    |
-|-------------------------|-----------------------|
-| `snorm_int8`            | `r8g8b8a8_snorm`      |
-| `snorm_int16`           | `r16g16b16a16_unorm`  |
-| `unorm_int8`            | `r8g8b8a8_unorm`      |
-| `unorm_int16`           | `r16g16b16a16_unorm`  |
-| `signed_int8`           | `r8g8b8a8_sint`       |
-| `signed_int16`          | `r16g16b16a16_sint`   |
-| `signed_int32`          | `r32b32g32a32_sint`   |
-| `unsigned_int8`         | `r8g8b8a8_uint`       |
-| `unsigned_int16`        | `r16g16b16a16_uint`   |
-| `unsigned_int32`        | `r32b32g32a32_uint`   |
-| `fp16`                  | `r16b16g16a16_sfloat` |
-| `fp32`                  | `r32g32b32a32_sfloat` |
+| `image_channel_type` |     `image_format`    |
+|----------------------|-----------------------|
+| `snorm_int8`         | `r8g8b8a8_snorm`      |
+| `snorm_int16`        | `r16g16b16a16_snorm`  |
+| `unorm_int8`         | `r8g8b8a8_unorm`      |
+| `unorm_int16`        | `r16g16b16a16_unorm`  |
+| `signed_int8`        | `r8g8b8a8_sint`       |
+| `signed_int16`       | `r16g16b16a16_sint`   |
+| `signed_int32`       | `r32b32g32a32_sint`   |
+| `unsigned_int8`      | `r8g8b8a8_uint`       |
+| `unsigned_int16`     | `r16g16b16a16_uint`   |
+| `unsigned_int32`     | `r32b32g32a32_uint`   |
+| `fp16`               | `r16b16g16a16_sfloat` |
+| `fp32`               | `r32g32b32a32_sfloat` |
 
 ## Example
 
