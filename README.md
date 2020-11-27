@@ -65,3 +65,4 @@ from this registry in the future.
 | CP022 | [Host Task with Interop capabilities](host_task/host_task.md) | SYCL 1.2.1 | 16 January 2019 | 20 January 2020 | _Final Draft_ |
 | CP026 | [Generalized Error Handling For SYCL](error-handling/sycl-error-handling.md) | SYCL Next | 10 March 2020 | 10 March 2020 | _Under Review_ |
 | CP028 | [Automatic placeholder requirements](auto-require/index.md) | SYCL Next (after 1.2.1) | 17 April 2020 | 28 April 2020 | _Work in Progress_ |
+| CP031 | [Aspect selector](aspect-selector/index.md) | SYCL 2020 | 27 November 2020 | 27 November 2020 | _Work in Progress_ |
