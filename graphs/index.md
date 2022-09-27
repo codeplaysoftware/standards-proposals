@@ -159,27 +159,27 @@ enum class queue_state {
 
 // State of a graph
 enum class graph_state {
-  recordable,
+  modifiable,
   executable
 };
 
 // New object representing graph
-template<graph_state State = graph_state::recordable>
+template<graph_state State = graph_state::modifiable>
 class command_graph {
 public:
-  /* Available only when: (State == graph_state::recordable) */
+  /* Available only when: (State == graph_state::modifiable) */
   command_graph(const property_list &propList = {});
-  /* Available only when: (State == graph_state::recordable) */
-  command_graph<graph_state::executable> finalize(context &syclContext);
+  /* Available only when: (State == graph_state::modifiable) */
+  command_graph<graph_state::executable> finalize(context &syclContext) const;
   /* Available only when: (State == graph_state::executable) */
-  void update(const command_graph<graph_state::recordable> &graph);
+  void update(const command_graph<graph_state::modifiable> &graph);
 };
 }  // namespace ext::codeplay
 
 // New methods added to the sycl::queue class
 class queue {
 public:
-  bool begin_recording(command_graph<graph_state::recordable> &graph);
+  bool begin_recording(command_graph<graph_state::modifiable> &graph);
   bool end_recording();
   event submit(command_graph<graph_state::executable> graph);
 };
@@ -220,18 +220,18 @@ in the graph being recorded to by the queue, this graph node is referred to as a
 
 An instance of a `command_graph` object can be in one of two states:
 
-* Recording - Graph is under construction and new nodes may be added to it.
+* Modifiable - Graph is under construction and new nodes may be added to it.
 * Executable - Graph topology is fixed after finalization and graph is ready to
   be submitted for execution.
 
 A `command_graph` object is constructed in the *recording* state and is made
 *executable* by the user invoking `command_graph::finalize()` to create a
-new executable instance of the graph. An *executable* graph cannot transition
-back to the *recording* state. After finalizing a graph in the *recordable*
-state it is valid for a user to add additional nodes and finalize again to
-create subsequent *executable* graphs. The state of a `command_graph` object
+new executable instance of the graph. An *executable* graph cannot be converted
+to a *modifiable* graph. After finalizing a graph in the
+*modifiable* state it is valid for a user to add additional nodes and finalize
+again to create subsequent *executable* graphs. The state of a `command_graph` object
 is made explicit by templating on state to make the class strongly typed, with
-the default template argument being `graph_state::recordable` to reduce code
+the default template argument being `graph_state::modifiable` to reduce code
 verbosity on construction.
 
 | ![](images/command_graph-state.svg) |
@@ -242,25 +242,25 @@ verbosity on construction.
 
 A graph in the *executable* state can have each nodes inputs & outputs updated
 using the `command_graph::update()` method. This takes a graph in the
-*recordable* state and updates the executable graph to use the node input &
-outputs of the recordable graph. The recordable graph must have the same
+*modifiable* state and updates the executable graph to use the node input &
+outputs of the modifiable graph. The modifiable graph must have the same
 topology as the graph originally used to create the executable graphs, with the
 nodes added in the same order.
 
 ##### Graph Member Functions
 
 ```cpp
-command_graph::command_graph<graph_state::recordable>(const property_list &propList = {});
+command_graph::command_graph<graph_state::modifiable>(const property_list &propList = {});
 ```
 
-Creates a SYCL `command_graph` object in the *recording* state.
+Creates a SYCL `command_graph` object in the *modifiable* state.
 Zero or more properties can be provided to the constructed SYCL `command_graph`
 via an instance of `property_list`.
 
 Preconditions:
 
 * This constructor is only available when the `command_graph` state is
-  `graph_state::recordable`.
+  `graph_state::modifiable`.
 
 Parameters:
 
@@ -268,19 +268,19 @@ Parameters:
   defined by this extension.
 
 ```cpp
-command_graph<graph_state::executable> command_graph<graph_state::recordable>::finalize(context &syclContext);
+command_graph<graph_state::executable> command_graph<graph_state::modifiable>::finalize(context &syclContext) const;
 ```
 Synchronous operation that creates a graph in the *executable* state with a
 fixed topology that can be submitted for execution on any queue sharing the supplied context.
 It is valid to call this method multiple time to create subsequent executable graphs. It is also
-valid to continue to add new nodes to the recordable graph instance after calling this
+valid to continue to add new nodes to the modifiable graph instance after calling this
 function. It is valid to finalize an empty graph instance with no recorded
 commands.
 
 Preconditions:
 
 * This member function is only available when the `command_graph` state is
-  `graph_state::recordable`.
+  `graph_state::modifiable`.
 
 Parameters:
 
@@ -289,17 +289,17 @@ Parameters:
 Returns: An executable graph object which can be submitted to a queue.
 
 ```cpp
-void command_graph<graph_state::executable> update(const command_graph<graph_state::recordable> &graph);
+void command_graph<graph_state::executable> update(const command_graph<graph_state::modifiable> &graph);
 ```
 
 Updates the executable graph node inputs & outputs from a topologically
-identical recordable graph. The effects of the update will be visible
+identical modifiable graph. The effects of the update will be visible
 on the next submission of the executable graph without the need for additional
 user synchronization.
 
 Parameters:
 
-* `graph` - Recordable graph object to update graph node inputs & outputs with.
+* `graph` - Modifiable graph object to update graph node inputs & outputs with.
   This graph must have the same topology as the original graph used on
   executable graph creation.
 
@@ -380,7 +380,7 @@ property and this graph extension.
 ##### New Queue Member Functions
 
 ```cpp
-bool queue::begin_recording(ext::codeplay::command_graph<graph_state::recordable> &graph)
+bool queue::begin_recording(ext::codeplay::command_graph<graph_state::modifiable> &graph)
 ```
 
 Synchronously changes the state of the queue to the `queue_state::recording`
@@ -481,7 +481,7 @@ preemptively changed the state of the queue.
 The lifetime of any buffer recorded as part of a submission
 to a command graph will be extended in keeping with the common reference
 semantics and buffer synchronization rules in the SYCL specification. It will be
-extended either for the lifetime of the graph (including both recordable graphs
+extended either for the lifetime of the graph (including both modifiable graphs
 and the executable graphs created from them) or until the buffer is no longer
 required by the graph (such as after being replaced through whole graph update).
 
@@ -512,7 +512,7 @@ the graph is submitted as a whole for execution via
   queue q{default_selector{}};
 
   // New object representing graph of command-groups
-  ext::codeplay::command_graph<graph_state::recording> graph;
+  ext::codeplay::command_graph<graph_state::modifiable> graph;
   {
     buffer<T> bufferA{dataA.data(), range<1>{elements}};
     buffer<T> bufferB{dataB.data(), range<1>{elements}};
@@ -568,7 +568,7 @@ the graph is submitted as a whole for execution via
     q.end_recording();
   }
 
-  // Finalize the recordable graph to create an executable graph that can be
+  // Finalize the modifiable graph to create an executable graph that can be
   // submitted for execution.
   ext::codeplay::command_graph<graph_state::executable> exec_graph = graph.finalize(q.get_context());
 
@@ -596,7 +596,7 @@ or SYCL Next.
 #### Single Queue Submit
 
 This extension allows a graph to be recorded from multiple different queues,
-but ony submitted to a single queue. The device associated with a queue is not
+but only submitted to a single queue. The device associated with a queue is not
 captured by the graph recording, only the commands submitted and their
 dependencies. The device used for graph execution is the device associated with
 the queue the graph is submitted to, and this device will execute the complete
@@ -670,7 +670,7 @@ happen in their application. As well as allowing the recording of a queue to a
 graph to resume after it has been stopped by an application.
 
 The ability for a user to effectively clone a graph is also possible with
-a separate finalize entry-point. A recordable graph can be reused to create
+a separate finalize entry-point. A modifiable graph can be reused to create
 multiple executable graphs by the user repeatedly calling `finalize()`.
 
 ## Issues
